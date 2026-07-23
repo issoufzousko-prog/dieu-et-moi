@@ -18,6 +18,8 @@ const SOCIAL_GRAPH_HTML_TEMPLATE = (backendUrl: string, supabaseUrl: string, sup
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
   <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/livekit-client@2.6.0/dist/livekit-client.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body, html {
@@ -463,9 +465,23 @@ const SOCIAL_GRAPH_HTML_TEMPLATE = (backendUrl: string, supabaseUrl: string, sup
         // Card persistante UNIQUEMENT pour les autres utilisateurs
         if (isMe) return;
 
-        var avatarHtml = (u.avatar_url || u.avatar)
-          ? '<img class="ucp-avatar-img" src="' + (u.avatar_url || u.avatar) + '" alt="' + name + '" />'
-          : '<div class="ucp-avatar-init">' + initial + '</div>';
+        var isConnected = connectedUserIds.has(u.id);
+        var isPending = pendingUserIds.has(u.id);
+
+        var buttonsHtml = '';
+        if (isConnected) {
+          buttonsHtml =
+            '<button class="ucp-btn ucp-btn-call" data-uid="' + u.id + '" data-action="call">📞 Appel</button>' +
+            '<button class="ucp-btn ucp-btn-chat" data-uid="' + u.id + '" data-action="chat">💬 Chat</button>';
+        } else if (isPending) {
+          buttonsHtml =
+            '<button class="ucp-btn ucp-btn-local" data-uid="' + u.id + '" data-action="local">📍 Local</button>' +
+            '<button class="ucp-btn ucp-btn-connect pending" disabled>⏳ Envoyé</button>';
+        } else {
+          buttonsHtml =
+            '<button class="ucp-btn ucp-btn-local" data-uid="' + u.id + '" data-action="local">📍 Local</button>' +
+            '<button class="ucp-btn ucp-btn-connect" data-uid="' + u.id + '" data-action="connect">➕ Connecter</button>';
+        }
 
         var cardHtml =
           '<div class="user-card-persistent">' +
@@ -476,16 +492,7 @@ const SOCIAL_GRAPH_HTML_TEMPLATE = (backendUrl: string, supabaseUrl: string, sup
                 '<div class="ucp-role">' + role + '</div>' +
               '</div>' +
             '</div>' +
-            '<div class="ucp-actions">' +
-              '<button class="ucp-btn ucp-btn-local" data-uid="' + u.id + '" data-action="local">' +
-                '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>' +
-                'Local' +
-              '</button>' +
-              '<button class="ucp-btn ucp-btn-connect" data-uid="' + u.id + '" data-action="connect">' +
-                '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>' +
-                'Connect' +
-              '</button>' +
-            '</div>' +
+            '<div class="ucp-actions">' + buttonsHtml + '</div>' +
           '</div>';
 
         new maplibregl.Popup({
@@ -582,21 +589,34 @@ const SOCIAL_GRAPH_HTML_TEMPLATE = (backendUrl: string, supabaseUrl: string, sup
       }
     }
 
-    function showCallPanel(peerName, token, roomName) {
+    async function showCallPanel(peerName, token, roomName) {
       var panel = document.getElementById('call-panel');
       document.getElementById('call-peer-name').textContent = peerName;
-      document.getElementById('call-room-name').textContent = roomName;
+      if (document.getElementById('call-room-name')) {
+        document.getElementById('call-room-name').textContent = roomName;
+      }
       panel.style.display = 'flex';
-      panel.dataset.token = token;
-      panel.dataset.room = roomName;
-      // Ici on connecterait le SDK LiveKit si charge
-      console.log('[LiveKit] Call panel ouvert pour room:', roomName, 'token:', token.slice(0,20) + '...');
+
+      if (window.LivekitClient) {
+        try {
+          activeRoom = new LivekitClient.Room({ adaptiveStream: true, dynacast: true });
+          await activeRoom.connect(LIVEKIT_WS_URL, token);
+          await activeRoom.localParticipant.setMicrophoneEnabled(true);
+          console.log('[LiveKit WebRTC] Connecté avec succès à la room:', roomName);
+        } catch (e) {
+          console.warn('[LiveKit WebRTC] Connexion room:', e.message);
+        }
+      }
     }
 
     function hangupCall() {
+      if (activeRoom) {
+        activeRoom.disconnect();
+        activeRoom = null;
+      }
       var panel = document.getElementById('call-panel');
       panel.style.display = 'none';
-      console.log('[LiveKit] Appel termine');
+      console.log('[LiveKit WebRTC] Appel terminé');
     }
 
     function toggleMic() {
@@ -604,7 +624,9 @@ const SOCIAL_GRAPH_HTML_TEMPLATE = (backendUrl: string, supabaseUrl: string, sup
       var muted = btn.dataset.muted === 'true';
       btn.dataset.muted = (!muted).toString();
       btn.style.background = muted ? 'rgba(255,255,255,0.08)' : '#ef4444';
-      console.log('[LiveKit] Micro', muted ? 'active' : 'coupe');
+      if (activeRoom && activeRoom.localParticipant) {
+        activeRoom.localParticipant.setMicrophoneEnabled(muted);
+      }
     }
 
     // === CHAT (stub - Supabase Realtime Phase suivante) ===
@@ -625,14 +647,14 @@ const SOCIAL_GRAPH_HTML_TEMPLATE = (backendUrl: string, supabaseUrl: string, sup
       if (!ctx || !registeredUsers || registeredUsers.length === 0) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      var nodes = registeredUsers
-        .filter(function(u) { return u.coords; })
+      var connectedNodes = registeredUsers
+        .filter(function(u) { return u.coords && (u.id === CURRENT_USER_ID || connectedUserIds.has(u.id)); })
         .map(function(u) {
           var pt = map.project(u.coords);
-          return { x: pt.x, y: pt.y };
+          return { id: u.id, x: pt.x, y: pt.y };
         });
 
-      if (nodes.length < 2) return;
+      if (connectedNodes.length < 2) return;
 
       var zoom = map.getZoom();
       // Arc visible meme a faible zoom : epaisseur min 1.5
