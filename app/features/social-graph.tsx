@@ -38,14 +38,30 @@ const SOCIAL_GRAPH_HTML_TEMPLATE = (backendUrl: string, supabaseUrl: string, sup
       display: flex; flex-direction: column;
       z-index: 30;
       box-shadow: 4px 0 32px rgba(0,0,0,0.7);
-      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: margin-left 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    #sidebar.collapsed {
+      margin-left: -330px;
     }
     .sidebar-inner { display: flex; flex-direction: column; gap: 14px; padding: 18px 16px 12px; }
     .sidebar-top-bar { display: flex; align-items: center; justify-content: space-between; }
     .mobile-close-btn {
-      display: none; background: rgba(255,255,255,0.1); border: none; color: #fff;
+      display: flex; background: rgba(255,255,255,0.1); border: none; color: #fff;
       width: 32px; height: 32px; border-radius: 16px; align-items: center; justify-content: center; cursor: pointer;
+      transition: background 0.2s;
     }
+    .mobile-close-btn:hover { background: rgba(255,255,255,0.2); }
+
+    /* Desktop Collapsible Toggle FAB Button */
+    #desktop-toggle-btn {
+      position: absolute; top: 16px; left: 16px; z-index: 25;
+      background: #0F172A; border: 1px solid rgba(255,255,255,0.15);
+      color: #fff; width: 38px; height: 38px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+      transition: all 0.2s;
+    }
+    #desktop-toggle-btn:hover { background: #1E293B; border-color: #818CF8; color: #818CF8; }
 
     #mobile-controls {
       display: none; position: absolute; top: 12px; left: 12px; right: 12px;
@@ -363,6 +379,9 @@ const SOCIAL_GRAPH_HTML_TEMPLATE = (backendUrl: string, supabaseUrl: string, sup
     </div>
 
     <div id="map-wrapper">
+      <button id="desktop-toggle-btn" onclick="toggleSidebar()" title="Replier / Déplier le panneau">
+        <svg id="toggle-icon-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
       <div id="map"></div>
       <canvas id="arcs-canvas"></canvas>
     </div>
@@ -400,11 +419,35 @@ const SOCIAL_GRAPH_HTML_TEMPLATE = (backendUrl: string, supabaseUrl: string, sup
     // Demandes en attente envoyees : Set d IDs
     var pendingUserIds = new Set();
 
-    function openSidebar() {
-      document.getElementById('sidebar').classList.add('open');
-    }
-    function closeSidebar() {
-      document.getElementById('sidebar').classList.remove('open');
+    function openSidebar() { toggleSidebar(true); }
+    function closeSidebar() { toggleSidebar(false); }
+
+    function toggleSidebar(forceOpen) {
+      var sidebar = document.getElementById('sidebar');
+      var isMobile = window.innerWidth <= 768;
+
+      if (isMobile) {
+        if (forceOpen !== undefined) {
+          sidebar.classList.toggle('open', forceOpen);
+        } else {
+          sidebar.classList.toggle('open');
+        }
+      } else {
+        if (forceOpen !== undefined) {
+          sidebar.classList.toggle('collapsed', !forceOpen);
+        } else {
+          sidebar.classList.toggle('collapsed');
+        }
+        var isCollapsed = sidebar.classList.contains('collapsed');
+        var icon = document.getElementById('toggle-icon-svg');
+        if (icon) {
+          icon.innerHTML = isCollapsed
+            ? '<polyline points="9 18 15 12 9 6"/>'
+            : '<polyline points="15 18 9 12 15 6"/>';
+        }
+        setTimeout(resizeCanvas, 320);
+        setTimeout(function() { if (map) map.resize(); }, 320);
+      }
     }
 
     async function initSocialGraph() {
