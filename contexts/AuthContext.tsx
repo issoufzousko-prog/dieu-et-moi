@@ -84,8 +84,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               id: u.id,
               full_name: u.user_metadata?.full_name || u.user_metadata?.name || u.email?.split('@')[0] || 'Membre Dieu & Moi',
               avatar_url: u.user_metadata?.avatar_url || null
-            }).then(({ error }) => {
-              if (error) console.warn('[AuthContext] Synchro profil utilisateur:', error.message);
+            }, { onConflict: 'id' }).then(({ error }) => {
+              if (error) console.log('[AuthContext] Synchro profil utilisateur (note):', error.message);
             });
           }
           
