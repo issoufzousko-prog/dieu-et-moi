@@ -287,6 +287,7 @@ export default function SocialGraphFeatureMui3() {
           {sidebarOpen ? <ChevronLeftIcon /> : <ChevronRightIcon />}
         </IconButton>
 
+        {/* Dynamic Web Maplibre & Canvas Arcs Overlay Container */}
         <Box
           ref={mapContainerRef}
           sx={{
@@ -304,18 +305,154 @@ export default function SocialGraphFeatureMui3() {
                 <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
                 <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
                 <style>
-                  body, html, #map { margin: 0; padding: 0; width: 100%; height: 100%; background: #0B0D12; }
+                  body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #0B0D12; }
+                  #map-wrap { position: relative; width: 100%; height: 100%; }
+                  #map { width: 100%; height: 100%; }
+                  #arcs-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
+                  
+                  .node-anchor {
+                    width: 16px; height: 16px;
+                    background: radial-gradient(circle, #a78bfa 0%, #6366f1 100%);
+                    border: 2px solid rgba(255,255,255,0.9);
+                    border-radius: 50%;
+                    box-shadow: 0 0 0 4px rgba(129,140,248,0.25), 0 0 16px rgba(129,140,248,0.7);
+                    cursor: pointer; transition: transform 0.2s;
+                  }
+                  .node-anchor:hover { transform: scale(1.6); }
+                  .node-me {
+                    background: radial-gradient(circle, #34d399 0%, #059669 100%) !important;
+                    box-shadow: 0 0 0 4px rgba(52,211,153,0.25), 0 0 16px rgba(52,211,153,0.6) !important;
+                  }
                 </style>
               </head>
               <body>
-                <div id="map"></div>
+                <div id="map-wrap">
+                  <div id="map"></div>
+                  <canvas id="arcs-canvas"></canvas>
+                </div>
                 <script>
-                  var map = new maplibregl.Map({
-                    container: 'map',
-                    style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
-                    center: [0.0, 9.0],
-                    zoom: 4.5
-                  });
+                  var map, canvas, ctx;
+                  var users = ${JSON.stringify(users)};
+                  var currentUserId = '${currentUserId}';
+                  var connectedUserIds = new Set(${JSON.stringify(Array.from(connectedUserIds))});
+                  var animFrameId = null;
+
+                  function initMap() {
+                    map = new maplibregl.Map({
+                      container: 'map',
+                      style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
+                      center: [0.0, 9.0],
+                      zoom: 4.5
+                    });
+
+                    canvas = document.getElementById('arcs-canvas');
+                    ctx = canvas.getContext('2d');
+                    resizeCanvas();
+                    window.addEventListener('resize', resizeCanvas);
+
+                    map.on('move', renderArcs);
+                    map.on('zoom', renderArcs);
+
+                    renderNodes();
+                    startArcAnimation();
+                  }
+
+                  function resizeCanvas() {
+                    canvas.width = canvas.offsetWidth;
+                    canvas.height = canvas.offsetHeight;
+                  }
+
+                  function renderNodes() {
+                    users.forEach(function(u) {
+                      if (!u.coords) return;
+                      var isMe = (u.id === currentUserId);
+                      var el = document.createElement('div');
+                      el.className = 'node-anchor' + (isMe ? ' node-me' : '');
+                      new maplibregl.Marker({ element: el, anchor: 'center' }).setLngLat(u.coords).addTo(map);
+                    });
+                  }
+
+                  function startArcAnimation() {
+                    function loop(timestamp) {
+                      renderArcs(timestamp);
+                      animFrameId = requestAnimationFrame(loop);
+                    }
+                    animFrameId = requestAnimationFrame(loop);
+                  }
+
+                  function renderArcs(timestamp) {
+                    if (!ctx || !users || users.length === 0) return;
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                    var connectedNodes = users
+                      .filter(function(u) { return u.coords && (u.id === currentUserId || connectedUserIds.has(u.id)); })
+                      .map(function(u) {
+                        var pt = map.project(u.coords);
+                        return { id: u.id, x: pt.x, y: pt.y };
+                      });
+
+                    if (connectedNodes.length < 2) return;
+
+                    var time = (timestamp || performance.now()) * 0.0008;
+
+                    for (var i = 0; i < connectedNodes.length; i++) {
+                      for (var j = i + 1; j < connectedNodes.length; j++) {
+                        var p1 = connectedNodes[i], p2 = connectedNodes[j];
+                        var dx = p2.x - p1.x, dy = p2.y - p1.y;
+                        var dist = Math.sqrt(dx * dx + dy * dy);
+                        var curvature = Math.max(dist * 0.25, 45);
+                        var midX = (p1.x + p2.x) / 2;
+                        var midY = (p1.y + p2.y) / 2 - curvature;
+
+                        // 1. Arc Lamineur Halo de Glow extérieur
+                        var gradGlow = ctx.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
+                        gradGlow.addColorStop(0, 'rgba(129, 140, 248, 0.15)');
+                        gradGlow.addColorStop(0.5, 'rgba(236, 72, 153, 0.15)');
+                        gradGlow.addColorStop(1, 'rgba(16, 185, 129, 0.15)');
+
+                        ctx.beginPath();
+                        ctx.moveTo(p1.x, p1.y);
+                        ctx.quadraticCurveTo(midX, midY, p2.x, p2.y);
+                        ctx.strokeStyle = gradGlow;
+                        ctx.lineWidth = 10;
+                        ctx.lineCap = 'round';
+                        ctx.stroke();
+
+                        // 2. Trait de liaison principal gradient
+                        var gradArc = ctx.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
+                        gradArc.addColorStop(0, '#818CF8');
+                        gradArc.addColorStop(0.5, '#EC4899');
+                        gradArc.addColorStop(1, '#10B981');
+
+                        ctx.beginPath();
+                        ctx.moveTo(p1.x, p1.y);
+                        ctx.quadraticCurveTo(midX, midY, p2.x, p2.y);
+                        ctx.strokeStyle = gradArc;
+                        ctx.lineWidth = 2.5;
+                        ctx.lineCap = 'round';
+                        ctx.stroke();
+
+                        // 3. Particules d'énergie lumineuses animées le long de la courbe Bézier
+                        var t = (time + (i + j) * 0.2) % 1.0;
+                        var px = Math.pow(1 - t, 2) * p1.x + 2 * (1 - t) * t * midX + Math.pow(t, 2) * p2.x;
+                        var py = Math.pow(1 - t, 2) * p1.y + 2 * (1 - t) * t * midY + Math.pow(t, 2) * p2.y;
+
+                        ctx.beginPath();
+                        ctx.arc(px, py, 4.5, 0, Math.PI * 2);
+                        ctx.fillStyle = '#FFFFFF';
+                        ctx.shadowColor = '#818CF8';
+                        ctx.shadowBlur = 12;
+                        ctx.fill();
+                        ctx.shadowBlur = 0;
+                      }
+                    }
+                  }
+
+                  if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', initMap);
+                  } else {
+                    setTimeout(initMap, 0);
+                  }
                 </script>
               </body>
               </html>
