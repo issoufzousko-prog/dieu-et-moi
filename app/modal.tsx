@@ -75,7 +75,7 @@ export default function ProfileModalScreen() {
 
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permission requise', "Autorisez l'acces a la galerie pour changer votre photo.");
+      Alert.alert('Permission requise', "Autorisez l'accès à la galerie pour changer votre photo.");
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -142,155 +142,185 @@ export default function ProfileModalScreen() {
     <View style={styles.container}>
       <StatusBar style="light" />
 
-      {/* Hero Banner */}
-      <View style={styles.heroBanner}>
-        <View style={styles.heroCircleDecor} />
-
-        {/* Close Button */}
-        <Pressable
-          onPress={() => router.back()}
-          style={styles.closeBtn}
-          hitSlop={12}
-        >
-          <MaterialCommunityIcons name="close" size={20} color="#fff" />
+      {/* Top Header Bar */}
+      <View style={styles.topAppBar}>
+        <Pressable onPress={() => router.back()} style={styles.topBackBtn} hitSlop={10}>
+          <MaterialCommunityIcons name="arrow-left" size={22} color={Colors.navy} />
+          <Text style={styles.topAppTitle}>Profil Utilisateur</Text>
         </Pressable>
-
-        {/* Avatar clickable */}
-        <Pressable onPress={handlePickAvatar} style={styles.avatarWrapper}>
-          {isUploadingAvatar ? (
-            <View style={styles.avatarFallback}>
-              <ActivityIndicator color={Colors.gold} />
-            </View>
-          ) : effectiveAvatar ? (
-            <Image
-              source={{ uri: effectiveAvatar }}
-              style={styles.avatar}
-              contentFit="cover"
-              transition={300}
-            />
-          ) : (
-            <View style={styles.avatarFallback}>
-              <Text style={styles.avatarFallbackText}>{initials}</Text>
-            </View>
-          )}
-          <View style={styles.cameraOverlay}>
-            <MaterialCommunityIcons name="camera" size={15} color="#fff" />
-          </View>
+        <Pressable onPress={() => router.back()} style={styles.topCloseBtn} hitSlop={10}>
+          <MaterialCommunityIcons name="close" size={20} color={Colors.grayWarm} />
         </Pressable>
-
-        {/* Name editable */}
-        {isEditingName ? (
-          <View style={styles.nameEditRow}>
-            <TextInput
-              style={styles.nameInput}
-              value={displayName}
-              onChangeText={setDisplayName}
-              autoFocus
-              placeholderTextColor="rgba(255,255,255,0.5)"
-              placeholder="Votre nom..."
-              onSubmitEditing={handleSaveName}
-              returnKeyType="done"
-            />
-            <Pressable onPress={handleSaveName} style={styles.saveNameBtn} disabled={isSavingName}>
-              {isSavingName
-                ? <ActivityIndicator color={Colors.gold} size="small" />
-                : <MaterialCommunityIcons name="check" size={20} color={Colors.gold} />
-              }
-            </Pressable>
-            <Pressable
-              onPress={() => { setIsEditingName(false); setDisplayName(name); }}
-              style={styles.cancelNameBtn}
-            >
-              <MaterialCommunityIcons name="close" size={18} color="rgba(255,255,255,0.5)" />
-            </Pressable>
-          </View>
-        ) : (
-          <Pressable onPress={() => setIsEditingName(true)} style={styles.namePressable}>
-            <Text style={styles.heroName}>{displayName}</Text>
-            <MaterialCommunityIcons
-              name="pencil-outline"
-              size={15}
-              color="rgba(255,255,255,0.5)"
-              style={{ marginLeft: 6, marginTop: 2 }}
-            />
-          </Pressable>
-        )}
-
-        <Text style={styles.heroEmail}>{email}</Text>
       </View>
 
-      {/* Content */}
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+        {/* Luxury Hero Banner */}
+        <View style={styles.heroCard}>
+          <View style={styles.heroGlowEffect} />
+          <View style={styles.heroGlowSecondary} />
 
-        {/* Genre / Banner avatar */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Illustration de la banniere</Text>
-          <View style={styles.genderRow}>
+          {/* Avatar Container */}
+          <Pressable onPress={handlePickAvatar} style={styles.avatarWrapper}>
+            {isUploadingAvatar ? (
+              <View style={styles.avatarFallback}>
+                <ActivityIndicator color={Colors.gold} />
+              </View>
+            ) : effectiveAvatar ? (
+              <Image
+                source={{ uri: effectiveAvatar }}
+                style={styles.avatar}
+                contentFit="cover"
+                transition={300}
+              />
+            ) : (
+              <View style={styles.avatarFallback}>
+                <Text style={styles.avatarFallbackText}>{initials}</Text>
+              </View>
+            )}
+            <View style={styles.cameraFab}>
+              <MaterialCommunityIcons name="camera-outline" size={16} color="#FFFFFF" />
+            </View>
+          </Pressable>
+
+          {/* Name & Edit Section */}
+          {isEditingName ? (
+            <View style={styles.nameEditContainer}>
+              <TextInput
+                style={styles.nameInput}
+                value={displayName}
+                onChangeText={setDisplayName}
+                autoFocus
+                placeholderTextColor="rgba(255,255,255,0.4)"
+                placeholder="Votre nom complet"
+                onSubmitEditing={handleSaveName}
+                returnKeyType="done"
+              />
+              <View style={styles.nameEditActions}>
+                <Pressable onPress={handleSaveName} style={styles.actionIconButton} disabled={isSavingName}>
+                  {isSavingName
+                    ? <ActivityIndicator color={Colors.gold} size="small" />
+                    : <MaterialCommunityIcons name="check" size={18} color={Colors.gold} />
+                  }
+                </Pressable>
+                <Pressable
+                  onPress={() => { setIsEditingName(false); setDisplayName(name); }}
+                  style={styles.actionIconButton}
+                >
+                  <MaterialCommunityIcons name="close" size={18} color="rgba(255,255,255,0.6)" />
+                </Pressable>
+              </View>
+            </View>
+          ) : (
+            <Pressable onPress={() => setIsEditingName(true)} style={styles.nameContainer}>
+              <Text style={styles.heroName}>{displayName}</Text>
+              <View style={styles.editBadge}>
+                <MaterialCommunityIcons name="pencil" size={12} color={Colors.gold} />
+              </View>
+            </Pressable>
+          )}
+
+          <View style={styles.emailContainer}>
+            <MaterialCommunityIcons name="email-outline" size={14} color="rgba(255,255,255,0.6)" />
+            <Text style={styles.heroEmail}>{email}</Text>
+          </View>
+        </View>
+
+        {/* Section: Genre & Bannière (MUI 3 Styled Toggle Group - NO EMOJIS) */}
+        <View style={styles.sectionContainer}>
+          <Text style={styles.sectionHeaderTitle}>Illustration de la bannière</Text>
+          <Text style={styles.sectionSubtitle}>Sélectionnez votre profil d'affichage</Text>
+          <View style={styles.genderToggleGroup}>
             <Pressable
-              style={[styles.genderOption, currentGender === 'male' && styles.genderOptionSelected]}
+              style={[
+                styles.genderSegment,
+                currentGender === 'male' && styles.genderSegmentActive,
+              ]}
               onPress={() => handleUpdateGender('male')}
             >
-              <Text style={styles.genderEmoji}>👨</Text>
-              <Text style={[styles.genderLabel, currentGender === 'male' && styles.genderLabelSelected]}>
+              <MaterialCommunityIcons
+                name="account-tie"
+                size={22}
+                color={currentGender === 'male' ? Colors.goldAlt : Colors.navy}
+              />
+              <Text
+                style={[
+                  styles.genderSegmentText,
+                  currentGender === 'male' && styles.genderSegmentTextActive,
+                ]}
+              >
                 Homme
               </Text>
               {currentGender === 'male' && (
-                <View style={styles.genderCheck}>
-                  <MaterialCommunityIcons name="check-circle" size={16} color={Colors.gold} />
+                <View style={styles.checkIndicator}>
+                  <MaterialCommunityIcons name="check-circle-outline" size={16} color={Colors.goldAlt} />
                 </View>
               )}
             </Pressable>
+
             <Pressable
-              style={[styles.genderOption, currentGender === 'female' && styles.genderOptionSelected]}
+              style={[
+                styles.genderSegment,
+                currentGender === 'female' && styles.genderSegmentActive,
+              ]}
               onPress={() => handleUpdateGender('female')}
             >
-              <Text style={styles.genderEmoji}>👩</Text>
-              <Text style={[styles.genderLabel, currentGender === 'female' && styles.genderLabelSelected]}>
+              <MaterialCommunityIcons
+                name="account-dress"
+                size={22}
+                color={currentGender === 'female' ? Colors.goldAlt : Colors.navy}
+              />
+              <Text
+                style={[
+                  styles.genderSegmentText,
+                  currentGender === 'female' && styles.genderSegmentTextActive,
+                ]}
+              >
                 Femme
               </Text>
               {currentGender === 'female' && (
-                <View style={styles.genderCheck}>
-                  <MaterialCommunityIcons name="check-circle" size={16} color={Colors.gold} />
+                <View style={styles.checkIndicator}>
+                  <MaterialCommunityIcons name="check-circle-outline" size={16} color={Colors.goldAlt} />
                 </View>
               )}
             </Pressable>
           </View>
         </View>
 
-        <Divider style={styles.sectionDivider} />
-
-        {/* Compte lie */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Compte lie</Text>
-          <View style={styles.providerRow}>
-            <View style={styles.providerIconBox}>
-              <MaterialCommunityIcons name="google" size={22} color={Colors.navy} />
+        {/* Section: Compte & Connexion (MUI 3 Card Style) */}
+        <View style={styles.sectionContainer}>
+          <Text style={styles.sectionHeaderTitle}>Compte lié</Text>
+          <View style={styles.accountCard}>
+            <View style={styles.accountIconBox}>
+              <MaterialCommunityIcons name="google" size={20} color={Colors.navy} />
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.infoLabel}>Google</Text>
-              <Text style={styles.infoValue} numberOfLines={1}>{email}</Text>
+            <View style={styles.accountMetaInfo}>
+              <Text style={styles.accountProviderTitle}>Google Workspace</Text>
+              <Text style={styles.accountEmailText} numberOfLines={1}>
+                {email}
+              </Text>
             </View>
-            <View style={styles.connectedBadge}>
-              <View style={styles.connectedDot} />
-              <Text style={styles.connectedBadgeText}>Connecte</Text>
+            <View style={styles.statusChip}>
+              <View style={styles.statusDot} />
+              <Text style={styles.statusChipText}>Connecté</Text>
             </View>
           </View>
         </View>
 
-        <Divider style={styles.sectionDivider} />
-
-        {/* Deconnexion */}
-        <View style={[styles.section, { paddingTop: 12 }]}>
+        {/* Action: Déconnexion (MUI 3 Outlined Danger Button) */}
+        <View style={styles.actionSection}>
           <Pressable
-            style={({ pressed }) => [styles.signOutBtn, pressed && styles.signOutBtnPressed]}
+            style={({ pressed }) => [
+              styles.logoutButton,
+              pressed && styles.logoutButtonPressed,
+            ]}
             onPress={handleSignOut}
           >
-            <MaterialCommunityIcons name="logout" size={20} color="#C53030" />
-            <Text style={styles.signOutBtnText}>Se deconnecter</Text>
+            <MaterialCommunityIcons name="logout-variant" size={18} color="#D32F2F" />
+            <Text style={styles.logoutButtonText}>Se déconnecter</Text>
           </Pressable>
         </View>
 
-        <View style={{ height: 48 }} />
+        <View style={{ height: 40 }} />
       </ScrollView>
     </View>
   );
@@ -302,54 +332,91 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.ivory,
   },
 
-  /* Hero Banner */
-  heroBanner: {
-    backgroundColor: Colors.navy,
-    paddingTop: Platform.OS === 'web' ? 36 : 56,
-    paddingBottom: 32,
+  /* Top Bar */
+  topAppBar: {
+    height: 56,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    backgroundColor: Colors.white,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(19, 41, 75, 0.08)',
+    ...Shadows.card,
+  },
+  topBackBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  topAppTitle: {
+    fontFamily: 'Inter_700Bold',
+    fontSize: 18,
+    color: Colors.navy,
+  },
+  topCloseBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: 'rgba(19, 41, 75, 0.05)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 40,
+  },
+
+  /* Hero Card (Modern Dark Navy Gradient Banner) */
+  heroCard: {
+    backgroundColor: '#0F172A',
+    borderRadius: 24,
+    paddingVertical: 32,
+    paddingHorizontal: 24,
     alignItems: 'center',
     position: 'relative',
     overflow: 'hidden',
+    marginBottom: 24,
+    ...Shadows.hover,
   },
-  heroCircleDecor: {
+  heroGlowEffect: {
     position: 'absolute',
-    top: -50,
-    right: -50,
+    top: -40,
+    right: -40,
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    backgroundColor: 'rgba(212, 168, 90, 0.15)',
+  },
+  heroGlowSecondary: {
+    position: 'absolute',
+    bottom: -50,
+    left: -50,
     width: 180,
     height: 180,
     borderRadius: 90,
-    backgroundColor: 'rgba(212,168,90,0.1)',
-  },
-  closeBtn: {
-    position: 'absolute',
-    top: Platform.OS === 'web' ? 14 : 52,
-    right: 18,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 10,
+    backgroundColor: 'rgba(30, 41, 59, 0.8)',
   },
 
-  /* Avatar */
+  /* Avatar & FAB Camera */
   avatarWrapper: {
     position: 'relative',
-    marginBottom: 14,
+    marginBottom: 16,
   },
   avatar: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
+    width: 92,
+    height: 92,
+    borderRadius: 46,
     borderWidth: 3,
     borderColor: Colors.gold,
   },
   avatarFallback: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    backgroundColor: 'rgba(212,168,90,0.18)',
+    width: 92,
+    height: 92,
+    borderRadius: 46,
+    backgroundColor: 'rgba(212, 168, 90, 0.18)',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 3,
@@ -357,207 +424,217 @@ const styles = StyleSheet.create({
   },
   avatarFallbackText: {
     fontFamily: 'Inter_700Bold',
-    fontSize: 30,
+    fontSize: 28,
     color: Colors.gold,
   },
-  cameraOverlay: {
+  cameraFab: {
     position: 'absolute',
     bottom: 2,
     right: 2,
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: Colors.gold,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: Colors.navy,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: Colors.navy,
+    borderColor: Colors.gold,
+    ...Shadows.soft,
   },
 
-  /* Name editing */
-  namePressable: {
+  /* Name & Edit */
+  nameContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 8,
     marginBottom: 4,
   },
   heroName: {
     fontFamily: 'Inter_700Bold',
     fontSize: 22,
     color: '#FFFFFF',
+    letterSpacing: -0.3,
+  },
+  editBadge: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: 'rgba(212, 168, 90, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emailContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   heroEmail: {
     fontFamily: 'Inter_400Regular',
     fontSize: 13,
-    color: 'rgba(255,255,255,0.5)',
-    marginTop: 2,
+    color: 'rgba(255, 255, 255, 0.65)',
   },
-  nameEditRow: {
+
+  nameEditContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 4,
-    paddingHorizontal: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    marginBottom: 8,
+    width: '100%',
+    maxWidth: 280,
   },
   nameInput: {
     flex: 1,
-    fontFamily: 'Inter_700Bold',
-    fontSize: 20,
-    color: '#FFFFFF',
-    borderBottomWidth: 1.5,
-    borderBottomColor: Colors.gold,
-    paddingVertical: 4,
-    paddingHorizontal: 2,
-    textAlign: 'center',
-  },
-  saveNameBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(212,168,90,0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cancelNameBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  /* Scroll */
-  scrollContent: {
-    paddingBottom: 24,
-  },
-  section: {
-    paddingHorizontal: 24,
-    paddingVertical: 20,
-  },
-  sectionTitle: {
     fontFamily: 'Inter_600SemiBold',
-    fontSize: 11,
-    color: Colors.grayWarm,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginBottom: 14,
+    fontSize: 16,
+    color: '#FFFFFF',
+    paddingVertical: 6,
   },
-  sectionDivider: {
-    backgroundColor: 'rgba(212,168,90,0.12)',
-    marginHorizontal: 24,
+  nameEditActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  actionIconButton: {
+    padding: 6,
   },
 
-  /* Gender */
-  genderRow: {
+  /* Section Containers */
+  sectionContainer: {
+    marginBottom: 24,
+  },
+  sectionHeaderTitle: {
+    fontFamily: 'Inter_700Bold',
+    fontSize: 14,
+    color: Colors.navy,
+    letterSpacing: 0.2,
+    marginBottom: 4,
+  },
+  sectionSubtitle: {
+    fontFamily: 'Inter_400Regular',
+    fontSize: 12,
+    color: Colors.grayWarm,
+    marginBottom: 12,
+  },
+
+  /* Gender Toggle Group (MUI 3 Segmented Cards - NO EMOJIS) */
+  genderToggleGroup: {
     flexDirection: 'row',
     gap: 12,
   },
-  genderOption: {
+  genderSegment: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
+    gap: 10,
     paddingVertical: 14,
-    borderRadius: 14,
+    paddingHorizontal: 16,
+    borderRadius: 16,
     borderWidth: 1.5,
-    borderColor: 'rgba(212,168,90,0.2)',
+    borderColor: 'rgba(19, 41, 75, 0.1)',
     backgroundColor: Colors.white,
     position: 'relative',
     ...Shadows.card,
   },
-  genderOptionSelected: {
+  genderSegmentActive: {
     borderColor: Colors.gold,
-    backgroundColor: 'rgba(212,168,90,0.06)',
+    backgroundColor: 'rgba(212, 168, 90, 0.08)',
   },
-  genderEmoji: {
-    fontSize: 20,
-  },
-  genderLabel: {
+  genderSegmentText: {
     fontFamily: 'Inter_600SemiBold',
     fontSize: 14,
     color: Colors.navy,
   },
-  genderLabelSelected: {
-    color: Colors.goldAlt,
+  genderSegmentTextActive: {
+    color: Colors.navy,
+    fontFamily: 'Inter_700Bold',
   },
-  genderCheck: {
+  checkIndicator: {
     position: 'absolute',
-    top: 6,
-    right: 8,
+    top: 10,
+    right: 10,
   },
 
-  /* Provider */
-  providerRow: {
+  /* Account Card (MUI 3 Styled Item) */
+  accountCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
     backgroundColor: Colors.white,
-    borderRadius: 14,
-    padding: 14,
+    borderRadius: 16,
+    padding: 16,
     borderWidth: 1,
-    borderColor: 'rgba(212,168,90,0.12)',
+    borderColor: 'rgba(19, 41, 75, 0.08)',
     ...Shadows.card,
   },
-  providerIconBox: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: 'rgba(19,41,75,0.06)',
+  accountIconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(19, 41, 75, 0.06)',
     alignItems: 'center',
     justifyContent: 'center',
+    marginRight: 14,
   },
-  infoLabel: {
+  accountMetaInfo: {
+    flex: 1,
+  },
+  accountProviderTitle: {
     fontFamily: 'Inter_600SemiBold',
     fontSize: 14,
     color: Colors.navy,
   },
-  infoValue: {
+  accountEmailText: {
     fontFamily: 'Inter_400Regular',
     fontSize: 12,
     color: Colors.grayWarm,
     marginTop: 2,
   },
-  connectedBadge: {
+  statusChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
+    gap: 6,
     paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingVertical: 6,
     borderRadius: 20,
-    backgroundColor: 'rgba(72,187,120,0.1)',
+    backgroundColor: 'rgba(46, 125, 50, 0.08)',
   },
-  connectedDot: {
+  statusDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#38A169',
+    backgroundColor: '#2E7D32',
   },
-  connectedBadgeText: {
+  statusChipText: {
     fontFamily: 'Inter_600SemiBold',
     fontSize: 11,
-    color: '#2F855A',
+    color: '#2E7D32',
   },
 
-  /* Sign Out */
-  signOutBtn: {
+  /* Logout Button */
+  actionSection: {
+    marginTop: 8,
+  },
+  logoutButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,
-    height: 52,
-    borderRadius: 26,
+    height: 50,
+    borderRadius: 25,
     borderWidth: 1.5,
-    borderColor: '#FEB2B2',
-    backgroundColor: '#FFF5F5',
-    width: '100%',
+    borderColor: '#EF5350',
+    backgroundColor: '#FFEBEE',
   },
-  signOutBtnPressed: {
-    backgroundColor: '#FED7D7',
-    transform: [{ scale: 0.98 }],
+  logoutButtonPressed: {
+    backgroundColor: '#FFCDD2',
+    transform: [{ scale: 0.99 }],
   },
-  signOutBtnText: {
-    fontFamily: 'Inter_600SemiBold',
-    fontSize: 15,
-    color: '#C53030',
+  logoutButtonText: {
+    fontFamily: 'Inter_700Bold',
+    fontSize: 14,
+    color: '#D32F2F',
   },
 });
