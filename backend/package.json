@@ -1,0 +1,23 @@
+{
+  "name": "dieu-et-moi-backend",
+  "version": "1.0.0",
+  "description": "Backend Agent pour la recherche exégétique et l'analyse d'intention",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "@langchain/community": "^0.2.0",
+    "@langchain/core": "^0.2.0",
+    "@langchain/openai": "^0.2.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "langchain": "^0.2.0",
+    "livekit-server-sdk": "^2.17.0",
+    "playwright": "^1.44.0",
+    "zod": "^3.23.8"
+  }
+}
