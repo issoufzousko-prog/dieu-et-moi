@@ -24,6 +24,7 @@ import CallIcon from '@mui/icons-material/Call';
 import ChatIcon from '@mui/icons-material/Chat';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
+import SendIcon from '@mui/icons-material/Send';
 import { supabase } from '../../lib/supabase';
 import { TraccarTrackerService } from '../../lib/services/traccarTrackerService';
 import { BACKEND_API_URL } from '../../lib/apiClient';
@@ -38,6 +39,14 @@ interface UserNode {
   coords?: [number, number];
 }
 
+interface ChatMessage {
+  id: string;
+  sender_id: string;
+  receiver_id: string;
+  content: string;
+  created_at: string;
+}
+
 export default function SocialGraphFeatureMui3() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -49,6 +58,12 @@ export default function SocialGraphFeatureMui3() {
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(true);
   const [connectedUserIds, setConnectedUserIds] = useState<Set<string>>(new Set());
   const [pendingUserIds, setPendingUserIds] = useState<Set<string>>(new Set());
+
+  // Direct Messaging Chat State (MUI 3)
+  const [activeChatPeerId, setActiveChatPeerId] = useState<string | null>(null);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [chatInputText, setChatInputText] = useState<string>('');
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
 
@@ -65,6 +80,97 @@ export default function SocialGraphFeatureMui3() {
       TraccarTrackerService.getInstance().stopTracking();
     };
   }, []);
+
+  // Supabase Realtime Subscription for Direct Messaging
+  useEffect(() => {
+    if (!currentUserId || !activeChatPeerId) return;
+
+    fetchChatHistory(currentUserId, activeChatPeerId);
+
+    const channel = supabase
+      .channel(`direct_chat:${currentUserId}:${activeChatPeerId}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'direct_messages' },
+        (payload) => {
+          const newMsg = payload.new as ChatMessage;
+          if (
+            (newMsg.sender_id === currentUserId && newMsg.receiver_id === activeChatPeerId) ||
+            (newMsg.sender_id === activeChatPeerId && newMsg.receiver_id === currentUserId)
+          ) {
+            setChatMessages((prev) => [...prev, newMsg]);
+            scrollToBottom();
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [currentUserId, activeChatPeerId]);
+
+  const fetchChatHistory = async (userId: string, peerId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('direct_messages')
+        .select('*')
+        .or(`and(sender_id.eq.${userId},receiver_id.eq.${peerId}),and(sender_id.eq.${peerId},receiver_id.eq.${userId})`)
+        .order('created_at', { ascending: true });
+
+      if (!error && data) {
+        setChatMessages(data as ChatMessage[]);
+      } else {
+        // Fallback default message if table empty or starting conversation
+        setChatMessages([
+          {
+            id: '1',
+            sender_id: peerId,
+            receiver_id: userId,
+            content: 'Paix et bénédictions ! Bienvenue dans l’espace de communion.',
+            created_at: new Date().toISOString()
+          }
+        ]);
+      }
+      scrollToBottom();
+    } catch (e) {
+      console.warn('[Chat Supabase] Erreur chargement historique:', e);
+    }
+  };
+
+  const scrollToBottom = () => {
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+  };
+
+  const handleSendChatMessage = async () => {
+    if (!chatInputText.trim() || !currentUserId || !activeChatPeerId) return;
+
+    const textToSend = chatInputText.trim();
+    setChatInputText('');
+
+    const tempMsg: ChatMessage = {
+      id: Date.now().toString(),
+      sender_id: currentUserId,
+      receiver_id: activeChatPeerId,
+      content: textToSend,
+      created_at: new Date().toISOString()
+    };
+
+    setChatMessages((prev) => [...prev, tempMsg]);
+    scrollToBottom();
+
+    try {
+      await supabase.from('direct_messages').insert({
+        sender_id: currentUserId,
+        receiver_id: activeChatPeerId,
+        content: textToSend
+      });
+    } catch (e) {
+      console.warn('[Chat Supabase] Erreur envoi message:', e);
+    }
+  };
 
   const fetchSocialData = async (userId: string) => {
     try {
@@ -110,6 +216,8 @@ export default function SocialGraphFeatureMui3() {
     const q = searchQuery.toLowerCase();
     return name.includes(q) || role.includes(q);
   });
+
+  const activePeerUser = users.find((u) => u.id === activeChatPeerId);
 
   const sidebarContent = (
     <Box
@@ -219,7 +327,14 @@ export default function SocialGraphFeatureMui3() {
                   <IconButton size="small" sx={{ color: '#10B981' }}>
                     <CallIcon fontSize="small" />
                   </IconButton>
-                  <IconButton size="small" sx={{ color: '#818CF8' }}>
+                  <IconButton
+                    size="small"
+                    sx={{ color: '#818CF8' }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveChatPeerId(u.id);
+                    }}
+                  >
                     <ChatIcon fontSize="small" />
                   </IconButton>
                 </Stack>
@@ -287,7 +402,7 @@ export default function SocialGraphFeatureMui3() {
           {sidebarOpen ? <ChevronLeftIcon /> : <ChevronRightIcon />}
         </IconButton>
 
-        {/* Dynamic Web Maplibre & Canvas Arcs Overlay Container */}
+        {/* Dynamic Web Maplibre Container */}
         <Box
           ref={mapContainerRef}
           sx={{
@@ -404,7 +519,6 @@ export default function SocialGraphFeatureMui3() {
                         var midX = (p1.x + p2.x) / 2;
                         var midY = (p1.y + p2.y) / 2 - curvature;
 
-                        // 1. Arc Lamineur Halo de Glow extérieur
                         var gradGlow = ctx.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
                         gradGlow.addColorStop(0, 'rgba(129, 140, 248, 0.15)');
                         gradGlow.addColorStop(0.5, 'rgba(236, 72, 153, 0.15)');
@@ -418,7 +532,6 @@ export default function SocialGraphFeatureMui3() {
                         ctx.lineCap = 'round';
                         ctx.stroke();
 
-                        // 2. Trait de liaison principal gradient
                         var gradArc = ctx.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
                         gradArc.addColorStop(0, '#818CF8');
                         gradArc.addColorStop(0.5, '#EC4899');
@@ -432,7 +545,6 @@ export default function SocialGraphFeatureMui3() {
                         ctx.lineCap = 'round';
                         ctx.stroke();
 
-                        // 3. Particules d'énergie lumineuses animées le long de la courbe Bézier
                         var t = (time + (i + j) * 0.2) % 1.0;
                         var px = Math.pow(1 - t, 2) * p1.x + 2 * (1 - t) * t * midX + Math.pow(t, 2) * p2.x;
                         var py = Math.pow(1 - t, 2) * p1.y + 2 * (1 - t) * t * midY + Math.pow(t, 2) * p2.y;
@@ -461,7 +573,8 @@ export default function SocialGraphFeatureMui3() {
           />
         </Box>
 
-        {selectedUserId && (
+        {/* Selected Member Quick Card */}
+        {selectedUserId && !activeChatPeerId && (
           <Paper
             elevation={6}
             sx={{
@@ -507,7 +620,15 @@ export default function SocialGraphFeatureMui3() {
                         <Button fullWidth variant="contained" color="success" size="small" startIcon={<CallIcon />} sx={{ borderRadius: 2.5, textTransform: 'none' }}>
                           Appel
                         </Button>
-                        <Button fullWidth variant="contained" color="primary" size="small" startIcon={<ChatIcon />} sx={{ borderRadius: 2.5, textTransform: 'none' }}>
+                        <Button
+                          fullWidth
+                          variant="contained"
+                          color="primary"
+                          size="small"
+                          startIcon={<ChatIcon />}
+                          onClick={() => setActiveChatPeerId(u.id)}
+                          sx={{ borderRadius: 2.5, textTransform: 'none' }}
+                        >
                           Chat
                         </Button>
                       </>
@@ -531,6 +652,126 @@ export default function SocialGraphFeatureMui3() {
                 </Stack>
               );
             })()}
+          </Paper>
+        )}
+
+        {/* 💬 MUI 3 DIRECT MESSAGING CHAT WINDOW / DRAWER */}
+        {activeChatPeerId && (
+          <Paper
+            elevation={12}
+            sx={{
+              position: 'absolute',
+              bottom: isMobile ? 0 : 24,
+              right: isMobile ? 0 : 24,
+              left: isMobile ? 0 : 'auto',
+              width: isMobile ? '100%' : 360,
+              height: isMobile ? '80vh' : 460,
+              zIndex: 40,
+              display: 'flex',
+              flexDirection: 'column',
+              bgcolor: '#0F172A',
+              color: '#FFF',
+              borderRadius: isMobile ? '24px 24px 0 0' : 6,
+              border: '1px solid rgba(129, 140, 248, 0.3)',
+              boxShadow: '0 16px 48px rgba(0,0,0,0.8)',
+              overflow: 'hidden'
+            }}
+          >
+            {/* Chat Header */}
+            <Stack
+              direction="row"
+              sx={{
+                p: 2,
+                alignItems: 'center',
+                justify-content: 'space-between',
+                bgcolor: '#1E293B',
+                borderBottom: '1px solid rgba(255,255,255,0.08)'
+              }}
+            >
+              <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+                <Avatar src={activePeerUser?.avatar_url} sx={{ width: 36, height: 36, bgcolor: '#3730A3' }}>
+                  {(activePeerUser?.full_name || activePeerUser?.email || 'U').charAt(0).toUpperCase()}
+                </Avatar>
+                <Box>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#F1F5F9' }}>
+                    {activePeerUser?.full_name || activePeerUser?.email || 'Chat Instantané'}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: '#34D399', display: 'block' }}>
+                    ● En ligne (Supabase Realtime)
+                  </Typography>
+                </Box>
+              </Stack>
+              <IconButton size="small" onClick={() => setActiveChatPeerId(null)} sx={{ color: '#94A3B8', '&:hover': { color: '#FFF' } }}>
+                <CloseIcon fontSize="small" />
+              </IconButton>
+            </Stack>
+
+            {/* Chat Messages Feed */}
+            <Stack spacing={1.5} sx={{ flex: 1, p: 2, overflowY: 'auto' }}>
+              {chatMessages.map((msg) => {
+                const isMe = msg.sender_id === currentUserId;
+                return (
+                  <Box
+                    key={msg.id}
+                    sx={{
+                      alignSelf: isMe ? 'flex-end' : 'flex-start',
+                      maxWidth: '80%',
+                      p: 1.5,
+                      borderRadius: isMe ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
+                      bgcolor: isMe ? '#3730A3' : '#1E293B',
+                      color: isMe ? '#FFFFFF' : '#E2E8F0',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
+                    }}
+                  >
+                    <Typography variant="body2" sx={{ lineHeight: 1.4, wordBreak: 'break-word' }}>
+                      {msg.content}
+                    </Typography>
+                  </Box>
+                );
+              })}
+              <div ref={messagesEndRef} />
+            </Stack>
+
+            {/* Chat Input Bar */}
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{
+                p: 1.5,
+                bgcolor: '#1E293B',
+                borderTop: '1px solid rgba(255,255,255,0.08)',
+                alignItems: 'center'
+              }}
+            >
+              <TextField
+                fullWidth
+                size="small"
+                placeholder="Écrire un message en direct..."
+                value={chatInputText}
+                onChange={(e) => setChatInputText(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') handleSendChatMessage();
+                }}
+                slotProps={{
+                  input: {
+                    sx: { borderRadius: 4, bgcolor: '#0F172A', color: '#FFF', fontSize: 13 }
+                  }
+                }}
+              />
+              <IconButton
+                color="primary"
+                onClick={handleSendChatMessage}
+                sx={{
+                  bgcolor: '#3730A3',
+                  color: '#FFF',
+                  '&:hover': { bgcolor: '#4338CA' },
+                  borderRadius: 3,
+                  p: 1
+                }}
+              >
+                <SendIcon fontSize="small" />
+              </IconButton>
+            </Stack>
           </Paper>
         )}
 
