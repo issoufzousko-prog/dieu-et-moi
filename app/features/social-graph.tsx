@@ -24,7 +24,6 @@ import CallIcon from '@mui/icons-material/Call';
 import ChatIcon from '@mui/icons-material/Chat';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
 import { supabase } from '../../lib/supabase';
 import { TraccarTrackerService } from '../../lib/services/traccarTrackerService';
 import { BACKEND_API_URL } from '../../lib/apiClient';
@@ -52,7 +51,6 @@ export default function SocialGraphFeatureMui3() {
   const [pendingUserIds, setPendingUserIds] = useState<Set<string>>(new Set());
 
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
-  const mapRef = useRef<any>(null);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -127,7 +125,7 @@ export default function SocialGraphFeatureMui3() {
         borderRight: '1px solid rgba(255, 255, 255, 0.08)'
       }}
     >
-      <Stack direction="row" alignItems="center" justifyContent="space-between">
+      <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
         <Button
           variant="outlined"
           size="small"
@@ -162,13 +160,15 @@ export default function SocialGraphFeatureMui3() {
         size="small"
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <SearchIcon fontSize="small" sx={{ color: '#64748B' }} />
-            </InputAdornment>
-          ),
-          sx: { borderRadius: 4, bgcolor: '#1E293B', color: '#FFF' }
+        slotProps={{
+          input: {
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon fontSize="small" sx={{ color: '#64748B' }} />
+              </InputAdornment>
+            ),
+            sx: { borderRadius: 4, bgcolor: '#1E293B', color: '#FFF' }
+          }
         }}
       />
 
@@ -186,13 +186,13 @@ export default function SocialGraphFeatureMui3() {
             <Stack
               key={u.id}
               direction="row"
-              alignItems="center"
               spacing={1.5}
               onClick={() => {
                 setSelectedUserId(u.id);
                 if (isMobile) setSidebarOpen(false);
               }}
               sx={{
+                alignItems: 'center',
                 p: 1.25,
                 borderRadius: 3,
                 cursor: 'pointer',
@@ -209,7 +209,7 @@ export default function SocialGraphFeatureMui3() {
                 <Typography variant="body2" sx={{ fontWeight: 600, color: '#F1F5F9' }} noWrap>
                   {name}
                 </Typography>
-                <Typography variant="caption" sx={{ color: '#64748B' }} noWrap display="block">
+                <Typography variant="caption" sx={{ color: '#64748B', display: 'block' }} noWrap>
                   {u.spiritual_status || 'Membre actif'}
                 </Typography>
               </Box>
@@ -263,7 +263,7 @@ export default function SocialGraphFeatureMui3() {
           anchor="bottom"
           open={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
-          PaperProps={{ sx: { borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '85vh', bgcolor: '#0F172A' } }}
+          slotProps={{ paper: { sx: { borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '85vh', bgcolor: '#0F172A' } } }}
         >
           {sidebarContent}
         </Drawer>
@@ -287,7 +287,6 @@ export default function SocialGraphFeatureMui3() {
           {sidebarOpen ? <ChevronLeftIcon /> : <ChevronRightIcon />}
         </IconButton>
 
-        {/* Dynamic Web Maplibre Container */}
         <Box
           ref={mapContainerRef}
           sx={{
@@ -351,7 +350,7 @@ export default function SocialGraphFeatureMui3() {
 
               return (
                 <Stack spacing={1.5}>
-                  <Stack direction="row" spacing={1.5} alignItems="center">
+                  <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
                     <Avatar src={u.avatar_url} sx={{ width: 42, height: 42, bgcolor: '#3730A3' }}>
                       {name.charAt(0).toUpperCase()}
                     </Avatar>
