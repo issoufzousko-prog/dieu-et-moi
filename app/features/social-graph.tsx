@@ -31,16 +31,66 @@ const SOCIAL_GRAPH_HTML_TEMPLATE = (backendUrl: string, supabaseUrl: string, sup
     }
     #root { display: flex; width: 100%; height: 100%; position: relative; }
 
-    /* SIDEBAR 320px fond #0F172A */
     #sidebar {
-      width: 320px; min-width: 320px; height: 100%;
+      width: 330px; min-width: 330px; height: 100%;
       background: #0F172A;
       border-right: 1px solid rgba(255,255,255,0.06);
       display: flex; flex-direction: column;
-      z-index: 20;
+      z-index: 30;
       box-shadow: 4px 0 32px rgba(0,0,0,0.7);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .sidebar-inner { display: flex; flex-direction: column; gap: 20px; padding: 24px 20px 12px; }
+    .sidebar-inner { display: flex; flex-direction: column; gap: 14px; padding: 18px 16px 12px; }
+    .sidebar-top-bar { display: flex; align-items: center; justify-content: space-between; }
+    .mobile-close-btn {
+      display: none; background: rgba(255,255,255,0.1); border: none; color: #fff;
+      width: 32px; height: 32px; border-radius: 16px; align-items: center; justify-content: center; cursor: pointer;
+    }
+
+    #mobile-controls {
+      display: none; position: absolute; top: 12px; left: 12px; right: 12px;
+      z-index: 25; pointer-events: none;
+      flex-direction: row; justify-content: space-between; align-items: center;
+    }
+    .mobile-floating-btn {
+      pointer-events: auto;
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(15,23,42,0.9); border: 1px solid rgba(255,255,255,0.15);
+      color: #fff; padding: 8px 14px; border-radius: 20px;
+      font-size: 12px; font-weight: 600; font-family: inherit;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.5); backdrop-filter: blur(10px);
+      cursor: pointer;
+    }
+
+    #floating-bottom-bar {
+      display: none; position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+      z-index: 25; pointer-events: auto;
+    }
+    .floating-fab-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: #3730A3; color: #fff; border: 1px solid rgba(255,255,255,0.2);
+      padding: 10px 20px; border-radius: 25px;
+      font-size: 13px; font-weight: 700; font-family: inherit;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6); cursor: pointer;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 768px) {
+      #sidebar {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        transform: translateY(100%);
+        z-index: 40;
+      }
+      #sidebar.open {
+        transform: translateY(0);
+      }
+      .mobile-close-btn { display: flex; }
+      #mobile-controls { display: flex; }
+      #floating-bottom-bar { display: block; }
+      #chat-modal {
+        left: 12px; right: 12px; bottom: 12px; width: auto; height: 380px;
+      }
+    }
 
     /* Bouton Retour MUI variant="outlined" discret */
     .btn-back {
@@ -262,18 +312,42 @@ const SOCIAL_GRAPH_HTML_TEMPLATE = (backendUrl: string, supabaseUrl: string, sup
 </head>
 <body>
   <div id="root">
+    <!-- Mobile top controls overlay -->
+    <div id="mobile-controls">
+      <button class="mobile-floating-btn" onclick="window.parent.postMessage('GO_BACK', '*')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Retour
+      </button>
+      <button class="mobile-floating-btn" onclick="openSidebar()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Membres (<span id="mobile-member-count">0</span>)
+      </button>
+    </div>
+
+    <!-- Floating Bottom FAB on Mobile -->
+    <div id="floating-bottom-bar">
+      <button class="floating-fab-btn" onclick="openSidebar()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        Voir la liste des membres
+      </button>
+    </div>
+
+    <!-- Sidebar Drawer -->
     <div id="sidebar">
       <div class="sidebar-inner">
-        <button class="btn-back" onclick="window.parent.postMessage('GO_BACK', '*')">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="19" y1="12" x2="5" y2="12"></line>
-            <polyline points="12 19 5 12 12 5"></polyline>
-          </svg>
-          Retour
-        </button>
+        <div class="sidebar-top-bar">
+          <button class="btn-back" onclick="window.parent.postMessage('GO_BACK', '*')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="19" y1="12" x2="5" y2="12"></line>
+              <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            Retour
+          </button>
+          <button class="mobile-close-btn" onclick="closeSidebar()" title="Fermer">✕</button>
+        </div>
         <div>
-          <div class="header-label">Social Graph</div>
-          <div class="header-title">Users &amp; Connections</div>
+          <div class="header-label">Réseau Spirituel</div>
+          <div class="header-title">Fidèles &amp; Connexions</div>
         </div>
         <div class="search-wrap">
           <svg class="search-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -326,6 +400,13 @@ const SOCIAL_GRAPH_HTML_TEMPLATE = (backendUrl: string, supabaseUrl: string, sup
     // Demandes en attente envoyees : Set d IDs
     var pendingUserIds = new Set();
 
+    function openSidebar() {
+      document.getElementById('sidebar').classList.add('open');
+    }
+    function closeSidebar() {
+      document.getElementById('sidebar').classList.remove('open');
+    }
+
     async function initSocialGraph() {
       map = new maplibregl.Map({
         container: 'map',
@@ -350,6 +431,9 @@ const SOCIAL_GRAPH_HTML_TEMPLATE = (backendUrl: string, supabaseUrl: string, sup
         if (res.ok) {
           const json = await res.json();
           registeredUsers = json.users || [];
+          if (document.getElementById('mobile-member-count')) {
+            document.getElementById('mobile-member-count').textContent = registeredUsers.length;
+          }
         }
       } catch (e) { console.warn('Erreur API graph-users:', e); }
 
@@ -424,6 +508,7 @@ const SOCIAL_GRAPH_HTML_TEMPLATE = (backendUrl: string, supabaseUrl: string, sup
 
         item.onclick = () => {
           selectUser(u.id);
+          closeSidebar();
           if (u.coords) map.flyTo({ center: u.coords, zoom: 8, duration: 1200 });
         };
 
