@@ -4,7 +4,7 @@ import { router, Stack } from 'expo-router';
 import { supabase } from '../../lib/supabase';
 import { TraccarTrackerService } from '../../lib/services/traccarTrackerService';
 
-const BACKEND_API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || 'http://localhost:3000';
+const BACKEND_API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || 'https://dieu-et-moi-api.onrender.com';
 
 const SOCIAL_GRAPH_HTML_TEMPLATE = (backendUrl: string, supabaseUrl: string, supabaseKey: string, currentUserId: string) => `
 <!DOCTYPE html>
