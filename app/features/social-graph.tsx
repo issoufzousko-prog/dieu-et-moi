@@ -118,10 +118,9 @@ export default function SocialGraphFeatureMui3() {
         .or(`and(sender_id.eq.${userId},receiver_id.eq.${peerId}),and(sender_id.eq.${peerId},receiver_id.eq.${userId})`)
         .order('created_at', { ascending: true });
 
-      if (!error && data) {
+      if (!error && data && data.length > 0) {
         setChatMessages(data as ChatMessage[]);
       } else {
-        // Fallback default message if table empty or starting conversation
         setChatMessages([
           {
             id: '1',
@@ -683,7 +682,7 @@ export default function SocialGraphFeatureMui3() {
               sx={{
                 p: 2,
                 alignItems: 'center',
-                justify-content: 'space-between',
+                justifyContent: 'space-between',
                 bgcolor: '#1E293B',
                 borderBottom: '1px solid rgba(255,255,255,0.08)'
               }}
@@ -729,7 +728,7 @@ export default function SocialGraphFeatureMui3() {
                   </Box>
                 );
               })}
-              <div ref={messagesEndRef} />
+              <Box ref={messagesEndRef} />
             </Stack>
 
             {/* Chat Input Bar */}
