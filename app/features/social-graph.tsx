@@ -541,15 +541,24 @@ const SOCIAL_GRAPH_HTML_TEMPLATE = (backendUrl: string, supabaseUrl: string, sup
           ? '<img class="user-avatar-img" src="' + (u.avatar_url || u.avatar) + '" alt="' + name + '" />'
           : '<div class="user-avatar-init">' + initial + '</div>';
 
+        var isConnected = connectedUserIds.has(u.id);
+        var quickActions = isConnected ?
+          '<div class="user-actions-row">' +
+            '<button class="small-btn small-btn-accept" data-uid="' + u.id + '" data-action="call" title="Appel vocal">📞</button>' +
+            '<button class="small-btn" style="background:#4F46E5;color:#fff;" data-uid="' + u.id + '" data-action="chat" title="Chat">💬</button>' +
+          '</div>' :
+          (u.coords ? '<div class="user-indicator" title="En ligne"></div>' : '');
+
         item.innerHTML =
           avatarHtml +
           '<div class="user-meta">' +
             '<div class="user-name">' + name + '</div>' +
             '<div class="user-role">' + role + '</div>' +
           '</div>' +
-          (u.coords ? '<div class="user-indicator" title="En ligne"></div>' : '');
+          quickActions;
 
-        item.onclick = () => {
+        item.onclick = (e) => {
+          if (e.target.closest('[data-action]')) return;
           selectUser(u.id);
           closeSidebar();
           if (u.coords) map.flyTo({ center: u.coords, zoom: 8, duration: 1200 });
