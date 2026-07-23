@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { Text, Divider } from 'react-native-paper';
+import { Text } from 'react-native-paper';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { Image } from 'expo-image';
@@ -139,197 +139,203 @@ export default function ProfileModalScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar style="light" />
+    <View style={styles.webViewportWrapper}>
+      <View style={styles.container}>
+        <StatusBar style="light" />
 
-      {/* Top Header Bar */}
-      <View style={styles.topAppBar}>
-        <Pressable onPress={() => router.back()} style={styles.topBackBtn} hitSlop={10}>
-          <MaterialCommunityIcons name="arrow-left" size={22} color={Colors.navy} />
-          <Text style={styles.topAppTitle}>Profil Utilisateur</Text>
-        </Pressable>
-        <Pressable onPress={() => router.back()} style={styles.topCloseBtn} hitSlop={10}>
-          <MaterialCommunityIcons name="close" size={20} color={Colors.grayWarm} />
-        </Pressable>
-      </View>
-
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        {/* Luxury Hero Banner */}
-        <View style={styles.heroCard}>
-          <View style={styles.heroGlowEffect} />
-          <View style={styles.heroGlowSecondary} />
-
-          {/* Avatar Container */}
-          <Pressable onPress={handlePickAvatar} style={styles.avatarWrapper}>
-            {isUploadingAvatar ? (
-              <View style={styles.avatarFallback}>
-                <ActivityIndicator color={Colors.gold} />
-              </View>
-            ) : effectiveAvatar ? (
-              <Image
-                source={{ uri: effectiveAvatar }}
-                style={styles.avatar}
-                contentFit="cover"
-                transition={300}
-              />
-            ) : (
-              <View style={styles.avatarFallback}>
-                <Text style={styles.avatarFallbackText}>{initials}</Text>
-              </View>
-            )}
-            <View style={styles.cameraFab}>
-              <MaterialCommunityIcons name="camera-outline" size={16} color="#FFFFFF" />
-            </View>
+        {/* Top Header Bar */}
+        <View style={styles.topAppBar}>
+          <Pressable onPress={() => router.back()} style={styles.topBackBtn} hitSlop={10}>
+            <MaterialCommunityIcons name="arrow-left" size={22} color={Colors.navy} />
+            <Text style={styles.topAppTitle}>Profil</Text>
           </Pressable>
+          <Pressable onPress={() => router.back()} style={styles.topCloseBtn} hitSlop={10}>
+            <MaterialCommunityIcons name="close" size={20} color={Colors.grayWarm} />
+          </Pressable>
+        </View>
 
-          {/* Name & Edit Section */}
-          {isEditingName ? (
-            <View style={styles.nameEditContainer}>
-              <TextInput
-                style={styles.nameInput}
-                value={displayName}
-                onChangeText={setDisplayName}
-                autoFocus
-                placeholderTextColor="rgba(255,255,255,0.4)"
-                placeholder="Votre nom complet"
-                onSubmitEditing={handleSaveName}
-                returnKeyType="done"
-              />
-              <View style={styles.nameEditActions}>
-                <Pressable onPress={handleSaveName} style={styles.actionIconButton} disabled={isSavingName}>
-                  {isSavingName
-                    ? <ActivityIndicator color={Colors.gold} size="small" />
-                    : <MaterialCommunityIcons name="check" size={18} color={Colors.gold} />
-                  }
-                </Pressable>
-                <Pressable
-                  onPress={() => { setIsEditingName(false); setDisplayName(name); }}
-                  style={styles.actionIconButton}
-                >
-                  <MaterialCommunityIcons name="close" size={18} color="rgba(255,255,255,0.6)" />
-                </Pressable>
-              </View>
-            </View>
-          ) : (
-            <Pressable onPress={() => setIsEditingName(true)} style={styles.nameContainer}>
-              <Text style={styles.heroName}>{displayName}</Text>
-              <View style={styles.editBadge}>
-                <MaterialCommunityIcons name="pencil" size={12} color={Colors.gold} />
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+          {/* Hero Banner Card */}
+          <View style={styles.heroCard}>
+            <View style={styles.heroGlowEffect} />
+
+            {/* Avatar */}
+            <Pressable onPress={handlePickAvatar} style={styles.avatarWrapper}>
+              {isUploadingAvatar ? (
+                <View style={styles.avatarFallback}>
+                  <ActivityIndicator color={Colors.gold} />
+                </View>
+              ) : effectiveAvatar ? (
+                <Image
+                  source={{ uri: effectiveAvatar }}
+                  style={styles.avatar}
+                  contentFit="cover"
+                  transition={300}
+                />
+              ) : (
+                <View style={styles.avatarFallback}>
+                  <Text style={styles.avatarFallbackText}>{initials}</Text>
+                </View>
+              )}
+              <View style={styles.cameraFab}>
+                <MaterialCommunityIcons name="camera-outline" size={14} color="#FFFFFF" />
               </View>
             </Pressable>
-          )}
 
-          <View style={styles.emailContainer}>
-            <MaterialCommunityIcons name="email-outline" size={14} color="rgba(255,255,255,0.6)" />
+            {/* Editable Name */}
+            {isEditingName ? (
+              <View style={styles.nameEditContainer}>
+                <TextInput
+                  style={styles.nameInput}
+                  value={displayName}
+                  onChangeText={setDisplayName}
+                  autoFocus
+                  placeholderTextColor="rgba(255,255,255,0.4)"
+                  placeholder="Votre nom complet"
+                  onSubmitEditing={handleSaveName}
+                  returnKeyType="done"
+                />
+                <View style={styles.nameEditActions}>
+                  <Pressable onPress={handleSaveName} style={styles.actionIconButton} disabled={isSavingName}>
+                    {isSavingName
+                      ? <ActivityIndicator color={Colors.gold} size="small" />
+                      : <MaterialCommunityIcons name="check" size={18} color={Colors.gold} />
+                    }
+                  </Pressable>
+                  <Pressable
+                    onPress={() => { setIsEditingName(false); setDisplayName(name); }}
+                    style={styles.actionIconButton}
+                  >
+                    <MaterialCommunityIcons name="close" size={18} color="rgba(255,255,255,0.6)" />
+                  </Pressable>
+                </View>
+              </View>
+            ) : (
+              <Pressable onPress={() => setIsEditingName(true)} style={styles.nameContainer}>
+                <Text style={styles.heroName}>{displayName}</Text>
+                <View style={styles.editBadge}>
+                  <MaterialCommunityIcons name="pencil" size={12} color={Colors.gold} />
+                </View>
+              </Pressable>
+            )}
+
             <Text style={styles.heroEmail}>{email}</Text>
           </View>
-        </View>
 
-        {/* Section: Genre & Bannière (MUI 3 Styled Toggle Group - NO EMOJIS) */}
-        <View style={styles.sectionContainer}>
-          <Text style={styles.sectionHeaderTitle}>Illustration de la bannière</Text>
-          <Text style={styles.sectionSubtitle}>Sélectionnez votre profil d'affichage</Text>
-          <View style={styles.genderToggleGroup}>
-            <Pressable
-              style={[
-                styles.genderSegment,
-                currentGender === 'male' && styles.genderSegmentActive,
-              ]}
-              onPress={() => handleUpdateGender('male')}
-            >
-              <MaterialCommunityIcons
-                name="account-tie"
-                size={22}
-                color={currentGender === 'male' ? Colors.goldAlt : Colors.navy}
-              />
-              <Text
+          {/* Section: Genre / Illustration (MUI 3 Styled - NO EMOJIS) */}
+          <View style={styles.sectionContainer}>
+            <Text style={styles.sectionHeaderTitle}>Illustration de la bannière</Text>
+            <View style={styles.genderToggleGroup}>
+              <Pressable
                 style={[
-                  styles.genderSegmentText,
-                  currentGender === 'male' && styles.genderSegmentTextActive,
+                  styles.genderSegment,
+                  currentGender === 'male' && styles.genderSegmentActive,
                 ]}
+                onPress={() => handleUpdateGender('male')}
               >
-                Homme
-              </Text>
-              {currentGender === 'male' && (
-                <View style={styles.checkIndicator}>
-                  <MaterialCommunityIcons name="check-circle-outline" size={16} color={Colors.goldAlt} />
-                </View>
-              )}
-            </Pressable>
+                <MaterialCommunityIcons
+                  name="account-tie"
+                  size={20}
+                  color={currentGender === 'male' ? Colors.goldAlt : Colors.navy}
+                />
+                <Text
+                  style={[
+                    styles.genderSegmentText,
+                    currentGender === 'male' && styles.genderSegmentTextActive,
+                  ]}
+                >
+                  Homme
+                </Text>
+                {currentGender === 'male' && (
+                  <MaterialCommunityIcons name="check-circle" size={16} color={Colors.goldAlt} />
+                )}
+              </Pressable>
 
-            <Pressable
-              style={[
-                styles.genderSegment,
-                currentGender === 'female' && styles.genderSegmentActive,
-              ]}
-              onPress={() => handleUpdateGender('female')}
-            >
-              <MaterialCommunityIcons
-                name="account-dress"
-                size={22}
-                color={currentGender === 'female' ? Colors.goldAlt : Colors.navy}
-              />
-              <Text
+              <Pressable
                 style={[
-                  styles.genderSegmentText,
-                  currentGender === 'female' && styles.genderSegmentTextActive,
+                  styles.genderSegment,
+                  currentGender === 'female' && styles.genderSegmentActive,
                 ]}
+                onPress={() => handleUpdateGender('female')}
               >
-                Femme
-              </Text>
-              {currentGender === 'female' && (
-                <View style={styles.checkIndicator}>
-                  <MaterialCommunityIcons name="check-circle-outline" size={16} color={Colors.goldAlt} />
-                </View>
-              )}
-            </Pressable>
-          </View>
-        </View>
-
-        {/* Section: Compte & Connexion (MUI 3 Card Style) */}
-        <View style={styles.sectionContainer}>
-          <Text style={styles.sectionHeaderTitle}>Compte lié</Text>
-          <View style={styles.accountCard}>
-            <View style={styles.accountIconBox}>
-              <MaterialCommunityIcons name="google" size={20} color={Colors.navy} />
-            </View>
-            <View style={styles.accountMetaInfo}>
-              <Text style={styles.accountProviderTitle}>Google Workspace</Text>
-              <Text style={styles.accountEmailText} numberOfLines={1}>
-                {email}
-              </Text>
-            </View>
-            <View style={styles.statusChip}>
-              <View style={styles.statusDot} />
-              <Text style={styles.statusChipText}>Connecté</Text>
+                <MaterialCommunityIcons
+                  name="account-dress"
+                  size={20}
+                  color={currentGender === 'female' ? Colors.goldAlt : Colors.navy}
+                />
+                <Text
+                  style={[
+                    styles.genderSegmentText,
+                    currentGender === 'female' && styles.genderSegmentTextActive,
+                  ]}
+                >
+                  Femme
+                </Text>
+                {currentGender === 'female' && (
+                  <MaterialCommunityIcons name="check-circle" size={16} color={Colors.goldAlt} />
+                )}
+              </Pressable>
             </View>
           </View>
-        </View>
 
-        {/* Action: Déconnexion (MUI 3 Outlined Danger Button) */}
-        <View style={styles.actionSection}>
-          <Pressable
-            style={({ pressed }) => [
-              styles.logoutButton,
-              pressed && styles.logoutButtonPressed,
-            ]}
-            onPress={handleSignOut}
-          >
-            <MaterialCommunityIcons name="logout-variant" size={18} color="#D32F2F" />
-            <Text style={styles.logoutButtonText}>Se déconnecter</Text>
-          </Pressable>
-        </View>
+          {/* Section: Compte lié */}
+          <View style={styles.sectionContainer}>
+            <Text style={styles.sectionHeaderTitle}>Compte lié</Text>
+            <View style={styles.accountCard}>
+              <View style={styles.accountIconBox}>
+                <MaterialCommunityIcons name="google" size={18} color={Colors.navy} />
+              </View>
+              <View style={styles.accountMetaInfo}>
+                <Text style={styles.accountProviderTitle}>Google Workspace</Text>
+                <Text style={styles.accountEmailText} numberOfLines={1}>
+                  {email}
+                </Text>
+              </View>
+              <View style={styles.statusChip}>
+                <View style={styles.statusDot} />
+                <Text style={styles.statusChipText}>Connecté</Text>
+              </View>
+            </View>
+          </View>
 
-        <View style={{ height: 40 }} />
-      </ScrollView>
+          {/* Action: Déconnexion */}
+          <View style={styles.actionSection}>
+            <Pressable
+              style={({ pressed }) => [
+                styles.logoutButton,
+                pressed && styles.logoutButtonPressed,
+              ]}
+              onPress={handleSignOut}
+            >
+              <MaterialCommunityIcons name="logout-variant" size={18} color="#D32F2F" />
+              <Text style={styles.logoutButtonText}>Se déconnecter</Text>
+            </Pressable>
+          </View>
+
+          <View style={{ height: 24 }} />
+        </ScrollView>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  webViewportWrapper: {
+    flex: 1,
+    backgroundColor: '#E2E8F0',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   container: {
     flex: 1,
+    width: '100%',
+    maxWidth: 450,
     backgroundColor: Colors.ivory,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.12,
+    shadowRadius: 25,
+    elevation: 8,
   },
 
   /* Top Bar */
@@ -338,7 +344,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     backgroundColor: Colors.white,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(19, 41, 75, 0.08)',
@@ -347,75 +353,66 @@ const styles = StyleSheet.create({
   topBackBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
   },
   topAppTitle: {
     fontFamily: 'Inter_700Bold',
-    fontSize: 18,
+    fontSize: 17,
     color: Colors.navy,
   },
   topCloseBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: 'rgba(19, 41, 75, 0.05)',
     alignItems: 'center',
     justifyContent: 'center',
   },
 
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 40,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 24,
   },
 
-  /* Hero Card (Modern Dark Navy Gradient Banner) */
+  /* Hero Card */
   heroCard: {
     backgroundColor: '#0F172A',
-    borderRadius: 24,
-    paddingVertical: 32,
-    paddingHorizontal: 24,
+    borderRadius: 20,
+    paddingVertical: 24,
+    paddingHorizontal: 16,
     alignItems: 'center',
     position: 'relative',
     overflow: 'hidden',
-    marginBottom: 24,
+    marginBottom: 20,
     ...Shadows.hover,
   },
   heroGlowEffect: {
     position: 'absolute',
-    top: -40,
-    right: -40,
-    width: 160,
-    height: 160,
-    borderRadius: 80,
+    top: -30,
+    right: -30,
+    width: 140,
+    height: 140,
+    borderRadius: 70,
     backgroundColor: 'rgba(212, 168, 90, 0.15)',
   },
-  heroGlowSecondary: {
-    position: 'absolute',
-    bottom: -50,
-    left: -50,
-    width: 180,
-    height: 180,
-    borderRadius: 90,
-    backgroundColor: 'rgba(30, 41, 59, 0.8)',
-  },
 
-  /* Avatar & FAB Camera */
+  /* Avatar & FAB */
   avatarWrapper: {
     position: 'relative',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   avatar: {
-    width: 92,
-    height: 92,
-    borderRadius: 46,
+    width: 84,
+    height: 84,
+    borderRadius: 42,
     borderWidth: 3,
     borderColor: Colors.gold,
   },
   avatarFallback: {
-    width: 92,
-    height: 92,
-    borderRadius: 46,
+    width: 84,
+    height: 84,
+    borderRadius: 42,
     backgroundColor: 'rgba(212, 168, 90, 0.18)',
     alignItems: 'center',
     justifyContent: 'center',
@@ -424,53 +421,46 @@ const styles = StyleSheet.create({
   },
   avatarFallbackText: {
     fontFamily: 'Inter_700Bold',
-    fontSize: 28,
+    fontSize: 26,
     color: Colors.gold,
   },
   cameraFab: {
     position: 'absolute',
-    bottom: 2,
-    right: 2,
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+    bottom: 0,
+    right: 0,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     backgroundColor: Colors.navy,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
     borderColor: Colors.gold,
-    ...Shadows.soft,
   },
 
   /* Name & Edit */
   nameContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 4,
+    gap: 6,
+    marginBottom: 2,
   },
   heroName: {
     fontFamily: 'Inter_700Bold',
-    fontSize: 22,
+    fontSize: 20,
     color: '#FFFFFF',
-    letterSpacing: -0.3,
   },
   editBadge: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     backgroundColor: 'rgba(212, 168, 90, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  emailContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
   heroEmail: {
     fontFamily: 'Inter_400Regular',
-    fontSize: 13,
+    fontSize: 12,
     color: 'rgba(255, 255, 255, 0.65)',
   },
 
@@ -478,65 +468,58 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    marginBottom: 8,
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 2,
+    marginBottom: 6,
     width: '100%',
-    maxWidth: 280,
+    maxWidth: 240,
   },
   nameInput: {
     flex: 1,
     fontFamily: 'Inter_600SemiBold',
-    fontSize: 16,
+    fontSize: 15,
     color: '#FFFFFF',
-    paddingVertical: 6,
+    paddingVertical: 4,
   },
   nameEditActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 2,
   },
   actionIconButton: {
-    padding: 6,
+    padding: 4,
   },
 
-  /* Section Containers */
+  /* Section */
   sectionContainer: {
-    marginBottom: 24,
+    marginBottom: 20,
   },
   sectionHeaderTitle: {
     fontFamily: 'Inter_700Bold',
-    fontSize: 14,
+    fontSize: 13,
     color: Colors.navy,
-    letterSpacing: 0.2,
-    marginBottom: 4,
-  },
-  sectionSubtitle: {
-    fontFamily: 'Inter_400Regular',
-    fontSize: 12,
-    color: Colors.grayWarm,
-    marginBottom: 12,
+    marginBottom: 10,
+    letterSpacing: 0.1,
   },
 
-  /* Gender Toggle Group (MUI 3 Segmented Cards - NO EMOJIS) */
+  /* Gender Segmented Cards */
   genderToggleGroup: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 10,
   },
   genderSegment: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 10,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: 16,
+    gap: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 14,
     borderWidth: 1.5,
     borderColor: 'rgba(19, 41, 75, 0.1)',
     backgroundColor: Colors.white,
-    position: 'relative',
     ...Shadows.card,
   },
   genderSegmentActive: {
@@ -545,60 +528,55 @@ const styles = StyleSheet.create({
   },
   genderSegmentText: {
     fontFamily: 'Inter_600SemiBold',
-    fontSize: 14,
+    fontSize: 13,
     color: Colors.navy,
   },
   genderSegmentTextActive: {
     color: Colors.navy,
     fontFamily: 'Inter_700Bold',
   },
-  checkIndicator: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-  },
 
-  /* Account Card (MUI 3 Styled Item) */
+  /* Account Card */
   accountCard: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.white,
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: 14,
+    padding: 14,
     borderWidth: 1,
     borderColor: 'rgba(19, 41, 75, 0.08)',
     ...Shadows.card,
   },
   accountIconBox: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     backgroundColor: 'rgba(19, 41, 75, 0.06)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 14,
+    marginRight: 12,
   },
   accountMetaInfo: {
     flex: 1,
   },
   accountProviderTitle: {
     fontFamily: 'Inter_600SemiBold',
-    fontSize: 14,
+    fontSize: 13,
     color: Colors.navy,
   },
   accountEmailText: {
     fontFamily: 'Inter_400Regular',
-    fontSize: 12,
+    fontSize: 11,
     color: Colors.grayWarm,
-    marginTop: 2,
+    marginTop: 1,
   },
   statusChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 20,
+    gap: 5,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 16,
     backgroundColor: 'rgba(46, 125, 50, 0.08)',
   },
   statusDot: {
@@ -615,15 +593,15 @@ const styles = StyleSheet.create({
 
   /* Logout Button */
   actionSection: {
-    marginTop: 8,
+    marginTop: 4,
   },
   logoutButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 10,
-    height: 50,
-    borderRadius: 25,
+    gap: 8,
+    height: 48,
+    borderRadius: 24,
     borderWidth: 1.5,
     borderColor: '#EF5350',
     backgroundColor: '#FFEBEE',
@@ -634,7 +612,7 @@ const styles = StyleSheet.create({
   },
   logoutButtonText: {
     fontFamily: 'Inter_700Bold',
-    fontSize: 14,
+    fontSize: 13,
     color: '#D32F2F',
   },
 });
