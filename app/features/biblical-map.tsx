@@ -3,7 +3,7 @@ import { StyleSheet, View, Text, Pressable, TextInput, Platform, ActivityIndicat
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { router, Stack } from 'expo-router';
 
-const BACKEND_API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || 'http://localhost:3000';
+const BACKEND_API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || 'https://dieu-et-moi-api.onrender.com';
 
 // Code HTML/JS embarqué avec gestionnaire de messages GeoAgent (MapLibre Agent Skills)
 const MAPLIBRE_HTML = `

@@ -27,7 +27,7 @@ export interface PageScene {
 const HF_API_KEY = process.env.EXPO_PUBLIC_HF_API_KEY || process.env.EXPO_PUBLIC_SIMULATOR_HF_KEY || '';
 const HF_ROUTER_URL = 'https://router.huggingface.co/v1/chat/completions';
 const HF_MODEL = 'google/gemma-3-12b-it';
-const BACKEND_API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || 'http://localhost:3000';
+const BACKEND_API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || 'https://dieu-et-moi-api.onrender.com';
 
 const PAGE_SCENE_SYSTEM_PROMPT = `Tu es un dramaturge et exégète théâtral de la Bible Louis Segond.
 Ta mission est de reformuler une TRANCHE DE VERSETS (10 à 12 versets) en une scène théâtrale vivante et captivante.

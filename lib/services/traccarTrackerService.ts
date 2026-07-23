@@ -12,7 +12,7 @@ export interface TraccarPosition {
 export class TraccarTrackerService {
   private static instance: TraccarTrackerService;
   private trackingInterval: any = null;
-  private backendUrl: string = process.env.EXPO_PUBLIC_BACKEND_URL || 'http://localhost:3000';
+  private backendUrl: string = process.env.EXPO_PUBLIC_BACKEND_URL || 'https://dieu-et-moi-api.onrender.com';
 
   private constructor() {}
 

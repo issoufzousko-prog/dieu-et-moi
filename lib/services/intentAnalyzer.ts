@@ -65,7 +65,7 @@ export async function generateEmbedding(text: string): Promise<number[]> {
   return dummyEmbedding;
 }
 
-const BACKEND_API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || 'http://localhost:3000';
+const BACKEND_API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || 'https://dieu-et-moi-api.onrender.com';
 
 /**
  * Brique 1 : Point d'entrée principal pour analyser la demande utilisateur

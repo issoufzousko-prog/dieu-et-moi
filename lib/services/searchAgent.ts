@@ -16,7 +16,7 @@ const HF_API_KEY = process.env.EXPO_PUBLIC_HF_API_KEY || process.env.EXPO_PUBLIC
 const HF_ROUTER_URL = 'https://router.huggingface.co/v1/chat/completions';
 const HF_MODEL = 'google/gemma-3-12b-it';
 
-const BACKEND_API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || 'http://localhost:3000';
+const BACKEND_API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || 'https://dieu-et-moi-api.onrender.com';
 
 const INDEXER_SYSTEM_PROMPT = `Tu es un indexeur canonique neutre et précis de la Bible Louis Segond.
 Ton unique rôle est d'analyser les résultats de recherche web et la requête pour identifier le personnage principal, le livre de la Bible exact en français, et la liste ordonnée des numéros de chapitres clés du commencement à la fin de son histoire.
