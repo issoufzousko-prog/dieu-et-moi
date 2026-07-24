@@ -8,6 +8,19 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+function cleanPrayerText(text: string): string {
+  const amenRegex = /\bamen\b/i;
+  const match = text.match(amenRegex);
+  if (match && match.index !== undefined) {
+    const endIndex = match.index + match[0].length;
+    const trailingPart = text.slice(endIndex);
+    const punctMatch = trailingPart.match(/^[\s.,!?;:]+/);
+    const extraLen = punctMatch ? punctMatch[0].length : 0;
+    return text.slice(0, endIndex + extraLen).trim();
+  }
+  return text.trim();
+}
+
 serve(async (req) => {
   // CORS Preflight handler
   if (req.method === "OPTIONS") {
@@ -130,8 +143,10 @@ serve(async (req) => {
     }
     console.log("LLM generated text successfully:", generatedText.substring(0, 60) + "...");
 
+    const finalPrayerText = cleanPrayerText(generatedText);
+
     // 5. STEP 2: Convert the generated text to Speech using Edge-TTS
-    const ttsText = `Lis la prière suivante à haute voix avec ferveur, sans ajouter aucun autre mot d'introduction : "${generatedText}"`;
+    const ttsText = finalPrayerText;
     let base64Audio = null;
 
     console.log(`Calling Edge-TTS for prayer audio generation...`);
@@ -203,7 +218,7 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({
-        text: generatedText,
+        text: finalPrayerText,
         audio: base64Audio,
       }),
       {
