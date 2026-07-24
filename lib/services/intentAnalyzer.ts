@@ -16,8 +16,8 @@ export interface UserIntentProfile {
   searchQueryForAgent: string;
 }
 
-const HF_API_KEY = process.env.EXPO_PUBLIC_HF_API_KEY || '';
-const HF_ROUTER_URL = 'https://router.huggingface.co/v1/chat/completions';
+import { supabase } from '../supabase';
+
 const HF_MODEL = 'google/gemma-3-12b-it';
 
 export const INTENT_ANALYZER_SYSTEM_PROMPT = `Tu es un expert en psychologie clinique, théologie et analyse sémantique des émotions humaines.
@@ -39,17 +39,15 @@ Tu dois répondre STRICTEMENT sous forme de JSON brut (sans balises markdown, sa
  */
 export async function generateEmbedding(text: string): Promise<number[]> {
   try {
-    const response = await fetch('https://api-inference.huggingface.co/pipeline/feature-extraction/BAAI/bge-m3', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${HF_API_KEY}`,
-      },
-      body: JSON.stringify({ inputs: text, options: { wait_for_model: true } }),
+    const { data, error } = await supabase.functions.invoke('ai-proxy', {
+      body: {
+        action: 'embed',
+        model: 'BAAI/bge-m3',
+        text: text
+      }
     });
 
-    if (response.ok) {
-      const data = await response.json();
+    if (!error && data) {
       if (Array.isArray(data)) {
         return Array.isArray(data[0]) ? data[0] : data;
       }
@@ -96,27 +94,21 @@ export async function analyzeUserIntent(rawPrompt: string): Promise<UserIntentPr
   const embeddingPromise = generateEmbedding(rawPrompt);
 
   try {
-    const response = await fetch(HF_ROUTER_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${HF_API_KEY}`,
-      },
-      body: JSON.stringify({
+    const { data: resJson, error } = await supabase.functions.invoke('ai-proxy', {
+      body: {
+        action: 'chat',
         model: HF_MODEL,
         messages: [
           { role: 'system', content: INTENT_ANALYZER_SYSTEM_PROMPT },
           { role: 'user', content: `Analyse cette situation utilisateur : "${rawPrompt}"` },
         ],
         temperature: 0.1,
-      }),
+      }
     });
 
-    if (!response.ok) {
-      throw new Error(`Erreur HTTP HF Router: ${response.status}`);
+    if (error || !resJson) {
+      throw new Error(`Erreur proxy AI: ${error?.message || 'Réponse vide'}`);
     }
-
-    const resJson = await response.json();
     const rawText = resJson?.choices?.[0]?.message?.content?.trim();
     
     if (!rawText) {

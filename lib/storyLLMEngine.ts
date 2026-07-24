@@ -8,9 +8,7 @@ import { getChapter, allBooks } from './bible';
 import { supabase } from './supabase';
 import { StoryModelfile } from './StoryModelfile';
 
-const HF_API_KEY = process.env.EXPO_PUBLIC_HF_API_KEY || process.env.EXPO_PUBLIC_SIMULATOR_HF_KEY || '';
 const HF_MODEL = 'google/gemma-3-12b-it';
-const HF_ROUTER_URL = 'https://router.huggingface.co/v1/chat/completions';
 
 interface BiblicalSelectorResult {
   character: string;
@@ -24,20 +22,16 @@ interface BiblicalSelectorResult {
 async function selectBiblicalReferenceOffline(query: string): Promise<BiblicalSelectorResult | null> {
   const systemPrompt = `Tu es un indexeur de récits bibliques. Détermine le personnage et les chapitres correspondants à : "${query}". Réponds uniquement par JSON brut : { "character": "...", "book": "...", "chapters": [1, 2] }`;
   try {
-    const response = await fetch(HF_ROUTER_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${HF_API_KEY}`,
-      },
-      body: JSON.stringify({
+    const { data, error } = await supabase.functions.invoke('ai-proxy', {
+      body: {
+        action: 'chat',
         model: HF_MODEL,
         messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: query }],
         temperature: 0.1,
-      }),
+      }
     });
-    if (!response.ok) return null;
-    const data = await response.json();
+
+    if (error || !data) return null;
     const rawText = data?.choices?.[0]?.message?.content?.trim();
     const start = rawText.indexOf('{');
     const end = rawText.lastIndexOf('}');
@@ -86,27 +80,22 @@ async function generateStoryDirectFallback(params: {
     userContent += `\nVoici les EXTRAITS RÉELS DE LA BIBLE :\n${extractedScriptures}`;
   }
 
-  const response = await fetch(HF_ROUTER_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${HF_API_KEY}`,
-    },
-    body: JSON.stringify({
+  const { data: resultData, error } = await supabase.functions.invoke('ai-proxy', {
+    body: {
+      action: 'chat',
       model: StoryModelfile.MODEL,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userContent },
       ],
       temperature: StoryModelfile.PARAMETERS.temperature,
-    }),
+    }
   });
 
-  if (!response.ok) {
-    throw new Error(`Erreur du service de secours LLM (${response.status})`);
+  if (error || !resultData) {
+    throw new Error(`Erreur du service de secours LLM: ${error?.message || 'Réponse vide'}`);
   }
 
-  const resultData = await response.json();
   const rawText = resultData?.choices?.[0]?.message?.content?.trim();
   const start = rawText.indexOf('{');
   const end = rawText.lastIndexOf('}');

@@ -12,8 +12,8 @@ export interface BibleStoryIndex {
   chapters: number[];
 }
 
-const HF_API_KEY = process.env.EXPO_PUBLIC_HF_API_KEY || process.env.EXPO_PUBLIC_SIMULATOR_HF_KEY || '';
-const HF_ROUTER_URL = 'https://router.huggingface.co/v1/chat/completions';
+import { supabase } from '../supabase';
+
 const HF_MODEL = 'google/gemma-3-12b-it';
 
 const BACKEND_API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || 'https://dieu-et-moi-api.onrender.com';
@@ -72,24 +72,19 @@ export async function searchBiblicalPassages(searchQuery: string): Promise<Bible
 
   if (searchMarkdown) {
     try {
-      const response = await fetch(HF_ROUTER_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${HF_API_KEY}`,
-        },
-        body: JSON.stringify({
+      const { data: resJson, error } = await supabase.functions.invoke('ai-proxy', {
+        body: {
+          action: 'chat',
           model: HF_MODEL,
           messages: [
             { role: 'system', content: INDEXER_SYSTEM_PROMPT },
             { role: 'user', content: `Résultats de recherche web :\n\n${searchMarkdown.substring(0, 5000)}\n\nRequête : "${searchQuery}"` },
           ],
           temperature: 0.1,
-        }),
+        }
       });
 
-      if (response.ok) {
-        const resJson = await response.json();
+      if (!error && resJson) {
         const rawText = resJson?.choices?.[0]?.message?.content?.trim();
 
         if (rawText) {

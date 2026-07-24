@@ -43,7 +43,53 @@ serve(async (req) => {
     }
 
     // 3. Extraction du payload de la requête
-    const { period, visits, verseText, verseRef } = await req.json();
+    const payload = await req.json();
+    const { action } = payload;
+
+    if (action === "chat") {
+      const { model, messages, temperature = 0.7, max_tokens = 1024 } = payload;
+      if (!messages || !Array.isArray(messages)) {
+        return new Response(JSON.stringify({ error: "Missing or invalid messages parameter" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const hfCallResult = await callHFWithRotation({
+        endpointType: "chat",
+        model: model || "google/gemma-3-12b-it",
+        messages,
+        temperature,
+        max_tokens,
+      });
+
+      return new Response(JSON.stringify(hfCallResult.data), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (action === "embed") {
+      const { model, text } = payload;
+      if (!text) {
+        return new Response(JSON.stringify({ error: "Missing text parameter" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const hfCallResult = await callHFWithRotation({
+        endpointType: "embed",
+        model: model || "BAAI/bge-m3",
+        embeddingInput: text,
+      });
+
+      return new Response(JSON.stringify(hfCallResult.data), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // 4. Comportement hérité : Génération de bénédictions quotidiennes (Smart Greeting)
+    const { period, visits, verseText, verseRef } = payload;
 
     if (!period || !verseText) {
       return new Response(JSON.stringify({ error: "Missing required fields (period, verseText)" }), {
@@ -52,7 +98,6 @@ serve(async (req) => {
       });
     }
 
-    // 4. Rate Limiting robuste (5 appels max par jour par utilisateur)
     const today = new Date().toISOString().split("T")[0];
 
     // Récupérer le compteur actuel
@@ -83,10 +128,11 @@ serve(async (req) => {
         { onConflict: "user_id,call_date" }
       );
 
-    // 5. Appel sécurisé à Hugging Face avec rotation automatique
+    // Appel sécurisé à Hugging Face avec rotation automatique
     const hfModel = Deno.env.get("HF_MODEL") || "google/gemma-3-4b-it";
 
     const hfCallResult = await callHFWithRotation({
+      endpointType: "chat",
       model: hfModel,
       messages: [
         {

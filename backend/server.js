@@ -296,22 +296,22 @@ ${rawText}`;
 
 // --- MOTEUR DE ROTATION MULTI-TOKEN HF (15 tokens) ---
 const HF_TOKENS = [
-  { id: "HF_TOKEN_01", key: "" },
-  { id: "HF_TOKEN_02", key: "" },
-  { id: "HF_TOKEN_03", key: "" },
-  { id: "HF_TOKEN_04", key: "" },
-  { id: "HF_TOKEN_05", key: "" },
-  { id: "HF_TOKEN_06", key: "" },
-  { id: "HF_TOKEN_07", key: "" },
-  { id: "HF_TOKEN_08", key: "" },
-  { id: "HF_TOKEN_09", key: "" },
-  { id: "HF_TOKEN_10", key: "" },
-  { id: "HF_TOKEN_11", key: "" },
-  { id: "HF_TOKEN_12", key: "" },
-  { id: "HF_TOKEN_13", key: "" },
-  { id: "HF_TOKEN_14", key: "" },
-  { id: "HF_TOKEN_15", key: "" },
-];
+  { id: "HF_TOKEN_01", key: process.env.HF_TOKEN_01 || "" },
+  { id: "HF_TOKEN_02", key: process.env.HF_TOKEN_02 || "" },
+  { id: "HF_TOKEN_03", key: process.env.HF_TOKEN_03 || "" },
+  { id: "HF_TOKEN_04", key: process.env.HF_TOKEN_04 || "" },
+  { id: "HF_TOKEN_05", key: process.env.HF_TOKEN_05 || "" },
+  { id: "HF_TOKEN_06", key: process.env.HF_TOKEN_06 || "" },
+  { id: "HF_TOKEN_07", key: process.env.HF_TOKEN_07 || "" },
+  { id: "HF_TOKEN_08", key: process.env.HF_TOKEN_08 || "" },
+  { id: "HF_TOKEN_09", key: process.env.HF_TOKEN_09 || "" },
+  { id: "HF_TOKEN_10", key: process.env.HF_TOKEN_10 || "" },
+  { id: "HF_TOKEN_11", key: process.env.HF_TOKEN_11 || "" },
+  { id: "HF_TOKEN_12", key: process.env.HF_TOKEN_12 || "" },
+  { id: "HF_TOKEN_13", key: process.env.HF_TOKEN_13 || "" },
+  { id: "HF_TOKEN_14", key: process.env.HF_TOKEN_14 || "" },
+  { id: "HF_TOKEN_15", key: process.env.HF_TOKEN_15 || "" },
+].filter(t => t.key !== "");
 
 const QUOTA_CODES = new Set([402, 429, 503]);
 
