@@ -115,8 +115,6 @@ function FeatureCard({ item, index }: { item: FeatureItem; index: number }) {
       router.push('/features/bible-coach' as any);
     } else if (item.title === 'Assistant Prédicateurs') {
       router.push('/features/preacher-assistant' as any);
-    } else if (item.id === '5' || item.title.includes('Graphe')) {
-      router.push('/features/social-graph' as any);
     } else if (item.title.includes('interprétations') || item.title.includes('Analyseur')) {
       router.push('/features/interpretation-analyzer' as any);
     } else if (item.title.includes('traductions') || item.title.includes('Comparaison')) {

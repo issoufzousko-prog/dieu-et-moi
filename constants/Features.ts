@@ -133,16 +133,6 @@ export const ALL_FEATURES: FeatureItem[] = [
     category: 'etude',
   },
   {
-    id: '5',
-    title: 'Graphe des\nrelations',
-    description: 'Visualisez les liens bibliques',
-    badge: '5',
-    materialIcon: 'graphql',
-    color: '#4AA9C8',
-    bgColor: '#E0EFF5',
-    category: 'etude',
-  },
-  {
     id: '8',
     title: 'Détection\ndes thèmes',
     description: 'Analysez les thématiques clés',
