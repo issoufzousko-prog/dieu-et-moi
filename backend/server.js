@@ -15,7 +15,7 @@ app.use(cors());
 app.use(express.json());
 
 const PORT = process.env.PORT || 3000;
-const HF_API_KEY = process.env.HF_API_KEY || process.env.EXPO_PUBLIC_HF_API_KEY || "";
+const HF_API_KEY = process.env.HF_API_KEY || process.env.EXPO_PUBLIC_HF_API_KEY || process.env.HF_TOKEN || "";
 
 // --- BRIQUE 1 : ANALYSE D'INTENTION & EMBEDDING ---
 
@@ -296,7 +296,7 @@ ${rawText}`;
 
 // --- MOTEUR DE ROTATION MULTI-TOKEN HF (15 tokens) ---
 const HF_TOKENS = [
-  { id: "HF_API_KEY", key: process.env.HF_API_KEY || process.env.EXPO_PUBLIC_HF_API_KEY || "" },
+  { id: "HF_API_KEY", key: process.env.HF_API_KEY || process.env.EXPO_PUBLIC_HF_API_KEY || process.env.HF_TOKEN || "" },
   { id: "HF_TOKEN_01", key: process.env.HF_TOKEN_01 || "" },
   { id: "HF_TOKEN_02", key: process.env.HF_TOKEN_02 || "" },
   { id: "HF_TOKEN_03", key: process.env.HF_TOKEN_03 || "" },
