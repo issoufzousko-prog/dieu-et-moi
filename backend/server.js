@@ -296,6 +296,7 @@ ${rawText}`;
 
 // --- MOTEUR DE ROTATION MULTI-TOKEN HF (15 tokens) ---
 const HF_TOKENS = [
+  { id: "HF_API_KEY", key: process.env.HF_API_KEY || process.env.EXPO_PUBLIC_HF_API_KEY || "" },
   { id: "HF_TOKEN_01", key: process.env.HF_TOKEN_01 || "" },
   { id: "HF_TOKEN_02", key: process.env.HF_TOKEN_02 || "" },
   { id: "HF_TOKEN_03", key: process.env.HF_TOKEN_03 || "" },
@@ -346,14 +347,15 @@ async function invokeHFWithRotation(systemPrompt, userMsg, model = "google/gemma
         lastError = new Error(`${token.id}: HTTP ${resp.status}`);
         continue;
       }
-      throw new Error(`HF erreur non-quota (${resp.status}): ${body.substring(0, 200)}`);
+      console.warn(`[HF Rotator Backend] Erreur non-quota sur ${token.id} (${resp.status}), bascule...`);
+      lastError = new Error(`HF erreur non-quota (${resp.status}): ${body.substring(0, 200)}`);
+      continue;
     } catch (e) {
-      if (e.message.includes("HF erreur")) throw e;
       lastError = e;
-      console.warn(`[HF Rotator Backend] Erreur reseau ${token.id}: ${e.message}`);
+      console.warn(`[HF Rotator Backend] Erreur reseau/parsing ${token.id}: ${e.message}`);
     }
   }
-  throw lastError || new Error("Tous les 15 tokens HF sont epuises.");
+  throw lastError || new Error("Tous les tokens HF configurés sont epuises.");
 }
 
 // --- COUCHE 2A : RESOLUTION GEOSPATIALE WIKIDATA SPARQL ---
