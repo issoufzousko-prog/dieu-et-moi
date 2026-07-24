@@ -59,8 +59,6 @@ export default function QuickActions() {
       router.push('/features/prayer-generator' as any);
     } else if (item.title === 'Méditation guidée') {
       router.push('/features/guided-meditation' as any);
-    } else if (item.title === 'Simulateur historique') {
-      router.push('/features/historical-simulator' as any);
     } else {
       router.push('/features' as any);
     }

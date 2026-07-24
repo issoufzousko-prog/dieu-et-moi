@@ -109,8 +109,6 @@ function FeatureCard({ item, index }: { item: FeatureItem; index: number }) {
       router.push('/features/prayer-generator' as any);
     } else if (item.title === 'Méditation guidée') {
       router.push('/features/guided-meditation' as any);
-    } else if (item.title === 'Simulateur historique') {
-      router.push('/features/historical-simulator' as any);
     } else if (item.title === 'Coach biblique') {
       router.push('/features/bible-coach' as any);
     } else if (item.title === 'Assistant Prédicateurs') {
@@ -125,8 +123,6 @@ function FeatureCard({ item, index }: { item: FeatureItem; index: number }) {
       router.push('/features/genealogy-tree' as any);
     } else if (item.title === 'Carte interactive') {
       router.push('/features/biblical-map' as any);
-    } else if (item.id === '17' || item.title.includes('Contes') || item.title.includes('Chronologie') || item.title.includes('chronologie') || item.title.includes('Récits Audio')) {
-      router.push('/features/audio-chronology' as any);
     } else if (item.title === 'Étude') {
       router.push('/bible' as any);
     } else if (item.title === 'Lecture audio') {
