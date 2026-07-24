@@ -1,4 +1,4 @@
-﻿import React, { useState, useCallback } from 'react';
+﻿﻿import React, { useState, useCallback } from 'react';
 import {
   StyleSheet,
   View,
@@ -55,6 +55,7 @@ export default function ProfileModalScreen() {
         try {
           const ext = file.name.split('.').pop() ?? 'jpg';
           const path = `avatars/${user.id}.${ext}`;
+          if (path.includes('..')) throw new Error('Invalid path');
           const { error: uploadError } = await supabase.storage
             .from('avatars')
             .upload(path, file, { upsert: true, contentType: file.type });
