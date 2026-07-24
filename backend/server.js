@@ -359,6 +359,9 @@ async function invokeHFWithRotation(systemPrompt, userMsg, model = "google/gemma
 // --- COUCHE 2A : RESOLUTION GEOSPATIALE WIKIDATA SPARQL ---
 async function fetchWikidataEntity(placeName) {
   const cleanName = placeName.replace(/^(le|la|les|l'|du|de|des)\s+/i, "").trim();
+  if (!/^[a-zA-Z0-9_]+$/.test(cleanName)) {
+    throw new Error('Invalid input');
+  }
   console.log(`[Wikidata SPARQL] Resolution pour: "${cleanName}"...`);
 
   const sparqlQuery = `
